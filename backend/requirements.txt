@@ -1,6 +1,8 @@
+# Segment 2: backend/requirements.txt
 fastapi
 uvicorn
-psycopg2-binary
 sqlalchemy
-pydantic
-alembic
+psycopg2-binary
+pydantic[email]         # includes email-validator
+python-jose[cryptography]
+passlib[bcrypt]
