@@ -1,0 +1,8 @@
+# Segment 2: backend/requirements.txt
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pydantic[email]         # includes email-validator
+python-jose[cryptography]
+passlib[bcrypt]
