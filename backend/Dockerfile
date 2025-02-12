@@ -1,4 +1,3 @@
-# Segment 9: backend/Dockerfile
 FROM python:3.10
 
 WORKDIR /app
