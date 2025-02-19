@@ -1,0 +1,34 @@
+
+New Individual Project
+Documentation Feedback ~ Deliverable #2
+Software Requirements Specification &
+Initial Development Schedule
+CMSI 4072 Spring 2025
+=======================================
+
+COMPONENT BREAKDOWN:
+   Not required for this semester's exercise
+
+FUNCTIONAL REQUIREMENTS:
+   Document not done.  No credit.
+
+PERFORMANCE REQUIREMENTS:
+
+
+ENVIRONMENT REQUIREMENTS:
+
+
+OVERALL ASSESSMENT:
+   Category                          Points
+   Component Breakdown                 1/1
+   Functional Requirements             0/4
+   Performance Requirements            0/2
+   Environment Requirements            0/1
+                                     =====
+   Subtotal                            1/8
+   Preliminary Schedule                0/2
+   ------------------------------------------------------
+   Total Percentage:   1/10 = 10% which is an F
+
+
+I can't evaluate what isn't there..
