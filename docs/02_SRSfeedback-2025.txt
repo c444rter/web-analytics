@@ -1,0 +1,57 @@
+
+New Individual Project
+Documentation Feedback ~ Deliverable #2
+Software Requirements Specification &
+   Initial Development Schedule
+CMSI 4072 Spring 2025
+=======================================
+
+COMPONENT BREAKDOWN:
+   Not required for this semester's exercise
+
+FUNCTIONAL REQUIREMENTS:
+   Not done.
+
+PERFORMANCE REQUIREMENTS:
+   Not done.
+
+ENVIRONMENT REQUIREMENTS:
+   Not done.
+
+   Component Breakdown                 1/1
+   Functional Requirements             0/4
+   Performance Requirements            0/2
+   Environment Requirements            0/1
+                                     =====
+   Subtotal                            1/8
+   Preliminary Schedule                0/2
+   ------------------------------------------------------
+   Total Percentage:   1/10 = 10% which is an F
+
+COMMENTS:
+---------
+
+I can't evaluate what isn't there.
+
+You have nothing for either the SRS or the SDD architecture documents in the
+repository.  You'll need to do a full SRS for deliverable #5 and a full
+architectural and detailed design document for deliverable #4 to get any
+credit for those documents for your project this semester.
+
+----------------------------------------------------------------------------
+\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
+----------------------------------------------------------------------------
+
+Documentation Feedback ~ Deliverable #5
+Software Requirements Specification Complete
+============================================
+
+OVERALL ASSESSMENT:
+           Category                                Points
+   Comments from first submission incorporated       8/8
+   Spelling and Grammar in document acceptable       2/2
+                                                   =====
+   Subtotal                                        10/10
+   ------------------------------------------------------
+   Total Percentage:   10/10 = 100% which is an A-plus
