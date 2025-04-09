@@ -141,10 +141,7 @@ function OrdersSummary({ aggregatorData }) {
     <Box sx={{ my: 2 }}>
       <Typography variant="h6">Orders Summary</Typography>
       <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-        <KpiCard
-          title="Total Orders"
-          value={aggregatorData.total_orders}
-        />
+        <KpiCard title="Total Orders" value={aggregatorData.total_orders} />
         <KpiCard
           title="Total Revenue"
           value={`$${aggregatorData.total_revenue.toFixed(2)}`}
@@ -167,14 +164,8 @@ function RepeatCustomers({ aggregatorData }) {
     <Box sx={{ my: 2 }}>
       <Typography variant="h6">Repeat Customers</Typography>
       <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-        <KpiCard
-          title="Unique Customers"
-          value={aggregatorData.unique_count}
-        />
-        <KpiCard
-          title="Repeat Customers"
-          value={aggregatorData.repeat_count}
-        />
+        <KpiCard title="Unique Customers" value={aggregatorData.unique_count} />
+        <KpiCard title="Repeat Customers" value={aggregatorData.repeat_count} />
         <KpiCard
           title="Repeat Rate (%)"
           value={aggregatorData.repeat_rate_percent.toFixed(2) + "%"}
@@ -206,18 +197,19 @@ function SimpleArrayTable({ title, data, columns }) {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: "#f0f0f0" }}>
-              {columns.map((col) => (
-                <th
-                  key={col}
-                  style={{
-                    border: "1px solid #ccc",
-                    padding: "6px 8px",
-                    textAlign: "left",
-                  }}
-                >
-                  {col}
-                </th>
-              ))}
+              {columns.map((col) => {
+                // Only change the header text color if the column is "city" or "order_count"
+                const lower = col.toLowerCase();
+                const headerStyle =
+                  lower === "city" || lower === "order_count"
+                    ? { color: "black", border: "1px solid #ccc", padding: "6px 8px", textAlign: "left" }
+                    : { border: "1px solid #ccc", padding: "6px 8px", textAlign: "left" };
+                return (
+                  <th key={col} style={headerStyle}>
+                    {col}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>

@@ -54,7 +54,7 @@ export default function Navbar() {
     <AppBar position="static" sx={{ marginBottom: 2 }}>
       <Toolbar>
         <Typography variant="h6" sx={{ flexGrow: 1, cursor: "pointer" }} onClick={() => router.push("/")}>
-          MyDAVIDS
+          mydavids.com
         </Typography>
         {status === "authenticated" ? (
           <div>
@@ -62,16 +62,16 @@ export default function Navbar() {
               <AccountCircle />
             </IconButton>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-              <MenuItem onClick={handleAccountDetails}>Account Details</MenuItem>
-              <MenuItem onClick={handleHistorical}>Historical Uploads</MenuItem>
-              <MenuItem onClick={handleUpload}>Upload Data</MenuItem>
+              <MenuItem onClick={handleAccountDetails}>Account</MenuItem>
+              <MenuItem onClick={handleHistorical}>Uploads</MenuItem>
+              <MenuItem onClick={handleUpload}>New Data</MenuItem>
               <MenuItem onClick={handleDashboard}>Dashboards</MenuItem>
-              <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
+              <MenuItem onClick={handleSignOut}>Log Out</MenuItem>
             </Menu>
           </div>
         ) : (
           <Button color="inherit" onClick={() => router.push("/login")}>
-            Sign In
+            Sign In!
           </Button>
         )}
       </Toolbar>

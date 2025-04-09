@@ -12,7 +12,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  LinearProgress
+  LinearProgress,
+  Container,
+  Paper,
+  Stack
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import useUpload from "../../hooks/useUpload";
@@ -50,7 +53,6 @@ export default function UploadPage() {
         const newPercent = data.percent || 0;
         setJobStatus(newStatus);
         setProgress(newPercent);
-
 
         if (newStatus === "processing") {
           setSnackbar({
@@ -149,38 +151,39 @@ export default function UploadPage() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" mb={2}>
-        Upload Your File
-      </Typography>
-      <input type="file" accept=".csv,.xlsx" onChange={handleFileChange} />
-      <Button
-        variant="contained"
-        onClick={handleUpload}
-        sx={{ ml: 2 }}
-        disabled={isLoading}
-        startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
-      >
-        {isLoading ? "Uploading..." : "Upload"}
-      </Button>
+    <Container maxWidth="sm" sx={{ mt: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Typography variant="h4" textAlign="center" mb={3}>
+          Upload Your File
+        </Typography>
+        <Stack spacing={2} alignItems="center">
+          <input type="file" accept=".csv,.xlsx" onChange={handleFileChange} />
+          <Button
+            variant="contained"
+            onClick={handleUpload}
+            disabled={isLoading}
+            startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : null}
+          >
+            {isLoading ? "Uploading..." : "Upload"}
+          </Button>
+        </Stack>
+      </Paper>
 
       <Snackbar
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
         open={snackbar.open}
         autoHideDuration={null}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alert
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-          icon={false}
-        >
+        <Alert severity={snackbar.severity} sx={{ width: "100%" }} icon={false}>
           <Box>
             <Typography variant="body2">{snackbar.message}</Typography>
             {jobStatus === "processing" && (
               <Box sx={{ mt: 1 }}>
                 <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 1 }} />
-                <Typography variant="caption" display="block" textAlign="right">{progress}%</Typography>
+                <Typography variant="caption" display="block" textAlign="right">
+                  {progress}%
+                </Typography>
               </Box>
             )}
           </Box>
@@ -194,15 +197,15 @@ export default function UploadPage() {
             Your file has been processed. Would you like to view the Default KPI Dashboard (all metrics) or choose custom KPIs?
           </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button variant="contained" onClick={handleChooseDefault}>
+        <DialogActions sx={{ justifyContent: "center", p: 2 }}>
+          <Button variant="contained" onClick={handleChooseDefault} sx={{ mx: 1 }}>
             Default KPI
           </Button>
-          <Button variant="outlined" onClick={handleChooseCustom}>
+          <Button variant="outlined" onClick={handleChooseCustom} sx={{ mx: 1 }}>
             Custom KPI
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Container>
   );
 }
