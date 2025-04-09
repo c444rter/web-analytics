@@ -1,75 +1,38 @@
-// app/historical/page.js
+// app/historical/page.jsx
+
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import React, { useEffect } from "react";
+import { Box, Typography, CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
-import {
-  Box,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-} from "@mui/material";
+import useHistoricalUploads from "../../hooks/useHistoricalUploads"; // ensure this hook exists
+import { useSession } from "next-auth/react";
 
 export default function HistoricalPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
-  const [uploads, setUploads] = useState([]);
+  const { data: session, status } = useSession();
+  const { data: uploads, isLoading, isError } = useHistoricalUploads(); // fetch historical uploads
 
+  // If not authenticated, redirect outside render.
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
     }
   }, [status, router]);
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetch("http://localhost:8000/uploads/history", {
-        headers: {
-          Authorization: `Bearer ${session?.user?.accessToken}`,
-        },
-      })
-        .then((r) => r.json())
-        .then((data) => {
-          // if API returns an array
-          if (Array.isArray(data)) {
-            setUploads(data);
-          } else {
-            // if it returns { uploads: [...] }
-            setUploads(data?.uploads || []);
-          }
-        })
-        .catch((err) => {
-          console.error("Fetch error:", err);
-          setUploads([]);
-        });
-    }
-  }, [status, session]);
-
-  if (status === "loading") return <p>Loading...</p>;
-  if (status === "unauthenticated") return null;
-
-  const handleGoToUpload = () => {
-    router.push("/upload");
-  };
-
-  if (uploads.length === 0) {
+  if (isLoading) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography variant="h4" mb={2}>
-          No Historical Data
-        </Typography>
-        <Typography variant="body1" mb={2}>
-          You haven’t uploaded anything yet. Click below to upload now!
-        </Typography>
-        <Button variant="contained" onClick={handleGoToUpload}>
-          Go to Upload Page
-        </Button>
+        <CircularProgress />
+        <Typography>Loading historical uploads...</Typography>
+      </Box>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography color="error">Error fetching historical uploads.</Typography>
       </Box>
     );
   }
@@ -79,28 +42,18 @@ export default function HistoricalPage() {
       <Typography variant="h4" mb={2}>
         Historical Uploads
       </Typography>
-      <Paper>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>File Name</TableCell>
-              <TableCell>Size in Rows</TableCell>
-              <TableCell>Size in MB</TableCell>
-              <TableCell>Date Uploaded</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {uploads.map((u) => (
-              <TableRow key={u.fileName + u.dateUploaded}>
-                <TableCell>{u.fileName}</TableCell>
-                <TableCell>{u.rows}</TableCell>
-                <TableCell>{u.mbSize}</TableCell>
-                <TableCell>{u.dateUploaded}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
+      {uploads && uploads.length > 0 ? (
+        uploads.map((upload) => (
+          <Box key={upload.id} sx={{ mb: 2, p: 2, border: "1px solid #ccc", borderRadius: 1 }}>
+            <Typography variant="subtitle1">
+              {upload.file_name} (Uploaded: {new Date(upload.uploaded_at).toLocaleString()})
+            </Typography>
+            <Typography>Status: {upload.status}</Typography>
+          </Box>
+        ))
+      ) : (
+        <Typography>No uploads found.</Typography>
+      )}
     </Box>
   );
 }

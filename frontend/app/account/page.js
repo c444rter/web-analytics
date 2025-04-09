@@ -1,6 +1,7 @@
 // app/account/page.js
 "use client";
 
+// Import necessary hooks and Material UI components
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -9,22 +10,22 @@ import { Box, Typography, TextField, Button } from "@mui/material";
 export default function AccountPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-
   const [newPassword, setNewPassword] = useState("");
 
+  // Redirect unauthenticated users to the login page.
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
     }
   }, [status, router]);
 
+  // Placeholder function to handle password updates.
   const handlePasswordChange = async () => {
     alert("Password change not yet implemented!");
-    // you'd call your /users/change-password route or similar
   };
 
   if (status === "loading") {
-    return <p>Loading...</p>;
+    return <Typography>Loading...</Typography>;
   }
   if (status === "unauthenticated") {
     return null;
@@ -36,8 +37,9 @@ export default function AccountPage() {
         Account Details
       </Typography>
       <Typography>Email: {session?.user?.email}</Typography>
-      {/* If you have a stored full_name in session or fetch from backend */}
-      <Typography>Name: (No name in session, fetch from backend if needed)</Typography>
+      <Typography>
+        Name: {session?.user?.name || "No name provided"}
+      </Typography>
 
       <Box mt={4}>
         <Typography variant="h6">Change Password</Typography>
@@ -48,7 +50,6 @@ export default function AccountPage() {
           onChange={(e) => setNewPassword(e.target.value)}
           sx={{ mb: 2 }}
         />
-        <br />
         <Button variant="contained" onClick={handlePasswordChange}>
           Update Password
         </Button>

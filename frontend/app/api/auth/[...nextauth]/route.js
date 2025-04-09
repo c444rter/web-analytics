@@ -1,81 +1,56 @@
+// app/api/auth/[...nextauth]/route.js
+"use server";
+
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const handler = NextAuth({
-  session: {
-    strategy: "jwt",
-    // We'll override maxAge in the signIn callback if rememberMe is set
-    maxAge: 60 * 60 * 24 // default 1 day, can be overridden
-  },
+const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
-        rememberMe: { label: "Remember Me", type: "checkbox" }
+        password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        try {
-          // Call your FastAPI login
-          const res = await fetch("http://localhost:8000/users/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password
-            })
-          });
-          if (!res.ok) return null;
-
-          const data = await res.json(); 
-          // data = { access_token, token_type, user_id }
-
-          return {
-            id: data.user_id,
+        // Call the new JSON login endpoint
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/json-token`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
             email: credentials.email,
-            accessToken: data.access_token,
-            rememberMe: credentials.rememberMe // store the user's choice
+            password: credentials.password
+          })
+        });
+        const user = await res.json();
+        if (res.ok && user.access_token) {
+          return {
+            id: user.user_id, // Ensure your backend returns user_id, or adapt as needed.
+            email: credentials.email,
+            access_token: user.access_token
           };
-        } catch (err) {
-          console.error("Authorize error:", err);
-          return null;
         }
+        return null;
       }
     })
   ],
+  secret: process.env.NEXTAUTH_SECRET,
+  session: { strategy: "jwt" },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
-        token.userId = user.id;
-        token.email = user.email;
-        token.accessToken = user.accessToken;
-        token.rememberMe = user.rememberMe;
+        token.accessToken = user.access_token;
+        token.id = user.id;
       }
       return token;
     },
     async session({ session, token }) {
-      session.user.id = token.userId;
-      session.user.email = token.email;
       session.user.accessToken = token.accessToken;
+      session.user.id = token.id;
       return session;
-    },
-    async signIn({ user }) {
-      // If rememberMe is true, set a longer maxAge
-      if (user?.rememberMe === "on" || user?.rememberMe === true) {
-        // e.g. 30 days:
-        this.session.maxAge = 60 * 60 * 24 * 30;
-      } else {
-        // e.g. 1 day or 0
-        this.session.maxAge = 60 * 60 * 24;
-      }
-      return true; // allow sign in
     }
-  },
-  pages: {
-    signIn: "/login"
-  },
-  secret: "MY_NEXTAUTH_SECRET"
-});
+  }
+};
 
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
