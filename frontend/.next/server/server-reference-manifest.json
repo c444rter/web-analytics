@@ -1,0 +1,28 @@
+{
+  "node": {
+    "7f1c89d07a00e11d20ce67bbf825b8acf23d42466a": {
+      "workers": {
+        "app/api/auth/[...nextauth]/route": {
+          "moduleId": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2FUsers%2Fcarteresparza%2Fweb-analytics%2Ffrontend%2Fapp%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute.js%22%2C%5B%7B%22id%22%3A%227f1c89d07a00e11d20ce67bbf825b8acf23d42466a%22%2C%22exportedName%22%3A%22POST%22%7D%2C%7B%22id%22%3A%227fddd958e589fb886a999af1162479c7cfadafc50d%22%2C%22exportedName%22%3A%22GET%22%7D%5D%5D%5D&__client_imported__=!",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/api/auth/[...nextauth]/route": "rsc"
+      }
+    },
+    "7fddd958e589fb886a999af1162479c7cfadafc50d": {
+      "workers": {
+        "app/api/auth/[...nextauth]/route": {
+          "moduleId": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2FUsers%2Fcarteresparza%2Fweb-analytics%2Ffrontend%2Fapp%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute.js%22%2C%5B%7B%22id%22%3A%227f1c89d07a00e11d20ce67bbf825b8acf23d42466a%22%2C%22exportedName%22%3A%22POST%22%7D%2C%7B%22id%22%3A%227fddd958e589fb886a999af1162479c7cfadafc50d%22%2C%22exportedName%22%3A%22GET%22%7D%5D%5D%5D&__client_imported__=!",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/api/auth/[...nextauth]/route": "rsc"
+      }
+    }
+  },
+  "edge": {},
+  "encryptionKey": "X9Uxqo9VvK4Ijv/Lr41MKI2ejoOr+vqg1NPJOSS8P0k="
+}

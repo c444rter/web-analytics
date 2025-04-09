@@ -1,12 +1,18 @@
-FROM python:3.10
+FROM python:3.11-slim
 
-WORKDIR /app
+# Set the working directory to the backend folder
+WORKDIR /app/backend
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy requirements.txt from the project root
+COPY requirements.txt /app/requirements.txt
+RUN pip install --upgrade pip && pip install --no-cache-dir -r /app/requirements.txt
 
-COPY . .
+# Copy the rest of the project from the build context into /app
+COPY . /app
 
 EXPOSE 8000
+ENV PYTHONUNBUFFERED=1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Since the working directory is now /app/backend,
+# use "main:app" (not "backend.main:app") for Uvicorn.
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

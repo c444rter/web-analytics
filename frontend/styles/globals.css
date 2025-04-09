@@ -1,0 +1,12 @@
+/* styles/globals.css */
+
+/* A simple CSS reset and global style settings for our app. */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+}
