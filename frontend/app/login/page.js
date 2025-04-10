@@ -1,27 +1,31 @@
 // app/login/page.js
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+// Import React, hooks, and Material UI components
+import React, { useState } from "react";
+import { signIn } from "next-auth/react"; // NextAuth credential provider sign in
+import { useRouter } from "next/navigation"; // For client-side navigation
 import {
   Box,
   Button,
   TextField,
   Typography,
   FormControlLabel,
-  Checkbox,
+  Checkbox
 } from "@mui/material";
 
 export default function LoginPage() {
+  // Local state for toggling between sign in and sign up modes.
   const router = useRouter();
   const [isSignUp, setIsSignUp] = useState(false);
+  // Fields for email, password, and full name (for sign up)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
+  // Toggle mode between sign up and sign in
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
     setErrorMsg(null);
@@ -31,26 +35,27 @@ export default function LoginPage() {
     setRememberMe(false);
   };
 
+  // Handle user registration. Calls your backend /users/signup endpoint.
   const handleSignUp = async () => {
     setErrorMsg(null);
     try {
-      // Basic register call, adjust to your actual endpoint
-      const res = await fetch("http://localhost:8000/users/register", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, full_name: fullName }),
+        body: JSON.stringify({ email, password, username: fullName }),
       });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.detail || "Registration failed");
       }
-      // Registration succeeded, auto sign in
+      // On successful registration, sign in automatically.
       await handleSignIn();
     } catch (err) {
       setErrorMsg(err.message);
     }
   };
 
+  // Handle user sign in using NextAuth credentials provider.
   const handleSignIn = async () => {
     setErrorMsg(null);
     const result = await signIn("credentials", {
@@ -62,10 +67,12 @@ export default function LoginPage() {
     if (result?.error) {
       setErrorMsg(result.error);
     } else {
-      router.push("/dashboard");
+      // On success, navigate to your dashboard.
+      router.push("/historical");
     }
   };
 
+  // Submit handler chooses sign up vs. sign in based on mode.
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isSignUp) handleSignUp();
