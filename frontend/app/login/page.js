@@ -22,7 +22,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
   // Toggle mode between sign up and sign in
@@ -32,7 +31,6 @@ export default function LoginPage() {
     setEmail("");
     setPassword("");
     setFullName("");
-    setRememberMe(false);
   };
 
   // Handle user registration. Calls your backend /users/signup endpoint.
@@ -62,12 +60,10 @@ export default function LoginPage() {
       redirect: false,
       email,
       password,
-      rememberMe,
     });
     if (result?.error) {
       setErrorMsg(result.error);
     } else {
-      // On success, navigate to your dashboard.
       router.push("/historical");
     }
   };
@@ -120,15 +116,6 @@ export default function LoginPage() {
         required
       />
 
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-          />
-        }
-        label="Remember Me"
-      />
 
       {errorMsg && (
         <Typography variant="body2" color="error">

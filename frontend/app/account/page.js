@@ -1,11 +1,17 @@
-// app/account/page.js
 "use client";
 
-// Import necessary hooks and Material UI components
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Box, Typography, TextField, Button } from "@mui/material";
+import {
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Stack
+} from "@mui/material";
 
 export default function AccountPage() {
   const { data: session, status } = useSession();
@@ -25,35 +31,50 @@ export default function AccountPage() {
   };
 
   if (status === "loading") {
-    return <Typography>Loading...</Typography>;
+    return (
+      <Container maxWidth="sm" sx={{ mt: 4 }}>
+        <Paper elevation={3} sx={{ p: 3 }}>
+          <Typography>Loading...</Typography>
+        </Paper>
+      </Container>
+    );
   }
   if (status === "unauthenticated") {
     return null;
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" mb={2}>
-        Account Details
-      </Typography>
-      <Typography>Email: {session?.user?.email}</Typography>
-      <Typography>
-        Name: {session?.user?.name || "No name provided"}
-      </Typography>
+    <Container maxWidth="sm" sx={{ mt: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Typography variant="h4" textAlign="center" mb={3}>
+          Account Details
+        </Typography>
+        <Stack spacing={2}>
+          <Typography variant="body1">
+            Email: {session?.user?.email}
+          </Typography>
+          <Typography variant="body1">
+            Name: {session?.user?.name || "No name provided"}
+          </Typography>
+        </Stack>
 
-      <Box mt={4}>
-        <Typography variant="h6">Change Password</Typography>
-        <TextField
-          label="New Password"
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          sx={{ mb: 2 }}
-        />
-        <Button variant="contained" onClick={handlePasswordChange}>
-          Update Password
-        </Button>
-      </Box>
-    </Box>
+        <Box mt={4}>
+          <Typography variant="h6" mb={2}>
+            Change Password
+          </Typography>
+          <Stack spacing={2}>
+            <TextField
+              label="New Password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <Button variant="contained" onClick={handlePasswordChange}>
+              Update Password
+            </Button>
+          </Stack>
+        </Box>
+      </Paper>
+    </Container>
   );
 }
