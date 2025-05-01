@@ -37,5 +37,5 @@ statsmodels
 typing_extensions
 tzdata
 uvicorn
-supabase-py==0.0.2
-storage3==0.5.2
+python-supabase>=1.0.3
+requests>=2.28.1
