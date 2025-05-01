@@ -71,11 +71,12 @@ The application is deployed using the following services:
 
 ### Configure the Backend API Service
 
-1. Railway will detect your Dockerfile
-2. **Important**: For the build context, you need to ensure requirements.txt is available
-   - Set the root directory to the project root (where requirements.txt is located)
-   - In the "Settings" tab, under "Service Settings", set "Service Path" to `/backend`
-   - This ensures that the Dockerfile can find the requirements.txt file
+1. Railway will use Docker for building and deploying the application thanks to the `railway.toml` configuration file
+2. **Important**: The railway.toml file in the project root instructs Railway to:
+   - Use Docker instead of Nixpacks
+   - Use the Dockerfile located at backend/Dockerfile
+   - Set the appropriate start command
+   - No need to manually configure the build context or service path
 3. Click "Deploy"
 4. Wait for the initial deployment to complete
 5. Go to the "Variables" tab and add the following environment variables:
@@ -101,21 +102,21 @@ The application is deployed using the following services:
 
 ### Set Up Worker Service
 
+The worker service is automatically configured in the railway.toml file, which includes settings for both the API service and the worker service. However, you'll still need to manually create the worker service in Railway:
+
 1. In your project dashboard, click "New"
 2. Select "GitHub Repo"
 3. Select the same repository
-4. **Important**: Use the same build context settings as the API service
-   - Set the root directory to the project root (where requirements.txt is located)
-   - In the "Settings" tab, under "Service Settings", set "Service Path" to `/backend`
+4. **Important**: Railway will automatically use the worker configuration from railway.toml
+   - The configuration specifies the same Dockerfile as the API service
+   - The start command is set to `rq worker --with-scheduler`
 5. Click "Deploy"
 6. Wait for the initial deployment to complete
 7. Go to the "Variables" tab
 8. Click "Reference variables from another service"
 9. Select your API service to copy all variables
 10. Click "Add References"
-11. Go to the "Settings" tab
-12. Under "Start Command", enter: `rq worker --with-scheduler`
-13. Click "Deploy" to apply changes
+11. Click "Deploy" to apply changes
 
 ### Run Database Migrations
 
