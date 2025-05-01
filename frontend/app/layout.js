@@ -5,7 +5,7 @@ import React from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Box, Container } from "@mui/material";
-import Navbar from "../components/NavBar"; // Updated import to match the correct case
+import Navbar from "../components/Navbar"; // Fixed import to match the actual filename
 import SessionProviderWrapper from "../components/SessionProviderWrapper";
 import { Provider as ReduxProvider } from "react-redux";
 import { store } from "../store/store";
