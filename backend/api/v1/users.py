@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from db import crud, schemas, models
 from core.security import create_access_token, verify_password
 from db.database import SessionLocal
+from core.deps import get_current_user
 
 router = APIRouter(tags=["users"])
 
@@ -48,3 +49,10 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
         )
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me", response_model=schemas.UserOut, summary="Get Current User Details")
+def get_current_user_details(current_user: models.User = Depends(get_current_user)):
+    """
+    Get details of the currently authenticated user, including creation and update dates.
+    """
+    return current_user

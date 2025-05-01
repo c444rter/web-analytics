@@ -119,13 +119,13 @@ class LineItem(Base):
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
     lineitem_quantity = Column(Integer)
     lineitem_name = Column(String)
-    lineitem_price = Column(String)
-    lineitem_compare_at_price = Column(String)
+    lineitem_price = Column(Numeric(12, 2))  # Changed from String to Numeric
+    lineitem_compare_at_price = Column(Numeric(12, 2), nullable=True)  # Changed from String to Numeric
     lineitem_sku = Column(String)
     lineitem_requires_shipping = Column(String)
     lineitem_taxable = Column(String)
     lineitem_fulfillment_status = Column(String)
-    lineitem_discount = Column(Numeric(12, 2))  # also changed from string to numeric
+    lineitem_discount = Column(Numeric(12, 2))
     variant_id = Column(String)
 
     order = relationship("Order", back_populates="line_items")

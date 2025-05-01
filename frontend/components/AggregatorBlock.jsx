@@ -183,6 +183,15 @@ function RepeatCustomers({ aggregatorData }) {
  * - columns (string[]) - array of column keys to show
  */
 function SimpleArrayTable({ title, data, columns }) {
+  // Filter out rows with "nan" values or empty strings
+  const filteredData = data.filter(row => {
+    // Check if any of the columns contain "nan" or empty string
+    return !columns.some(col => {
+      const value = row[col];
+      return value === "nan" || value === "" || value === undefined || value === null;
+    });
+  });
+  
   return (
     <Box sx={{ my: 2 }}>
       <Typography variant="h6">{title}</Typography>
@@ -213,21 +222,36 @@ function SimpleArrayTable({ title, data, columns }) {
             </tr>
           </thead>
           <tbody>
-            {data.map((row, idx) => (
-              <tr key={idx}>
-                {columns.map((col) => (
-                  <td
-                    key={col}
-                    style={{
-                      border: "1px solid #ccc",
-                      padding: "6px 8px",
-                    }}
-                  >
-                    {row[col]}
-                  </td>
-                ))}
+            {filteredData.length > 0 ? (
+              filteredData.map((row, idx) => (
+                <tr key={idx}>
+                  {columns.map((col) => (
+                    <td
+                      key={col}
+                      style={{
+                        border: "1px solid #ccc",
+                        padding: "6px 8px",
+                      }}
+                    >
+                      {row[col]}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td 
+                  colSpan={columns.length}
+                  style={{
+                    border: "1px solid #ccc",
+                    padding: "12px 8px",
+                    textAlign: "center",
+                  }}
+                >
+                  No data available
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </Box>

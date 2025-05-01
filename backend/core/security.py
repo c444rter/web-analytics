@@ -1,12 +1,23 @@
 # security.py
 import os
+import sys
 from datetime import datetime, timedelta
 from typing import Union
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-# Load the SECRET_KEY from the environment; fallback provided for development.
+# Load the SECRET_KEY from the environment with proper validation
 SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    # In production, we should fail if SECRET_KEY is not set
+    if os.getenv("ENVIRONMENT", "development").lower() == "production":
+        print("ERROR: SECRET_KEY environment variable is not set. Exiting for security reasons.")
+        sys.exit(1)
+    else:
+        # For development only, use a default key with a warning
+        SECRET_KEY = "development_secret_key_not_for_production_use"
+        print("WARNING: Using default SECRET_KEY for development. DO NOT use in production!")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 180
 

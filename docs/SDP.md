@@ -24,7 +24,7 @@
 This Software Development Plan outlines the planned development for the Shopify Analytics App. This application is designed to efficiently process large Shopify export files, generate comprehensive analytics dashboards—including machine learning projections—and provide a user-friendly interface for both default and custom KPI views along with historical upload management.
 
 **Project Overview:**  
-The project includes backend API development, performance enhancements for bulk ingestion (processing approximately 13k records in ~30 seconds), and a dynamic Next.js/React frontend that displays analytics data and real-time upload progress. The system is built using FastAPI, PostgreSQL, Redis/RQ, and integrates machine learning components to produce future projections based on historical data.
+The project includes backend API development, performance enhancements for bulk ingestion (processing approximately 13k records in ~30 seconds), and a dynamic Next.js/React frontend that displays analytics data and real-time upload progress. The system is built using FastAPI, PostgreSQL, Redis/RQ, and integrates machine learning components to produce future projections based on historical data. This includes both general sales forecasting and style-based forecasting that analyzes product categories to predict future sales trends by style.
 
 ### 4.1.1 Project Deliverables
 
@@ -49,8 +49,8 @@ The project includes backend API development, performance enhancements for bulk 
   _Description:_ Execute comprehensive testing of all components (backend API, bulk data ingestion, frontend functionality) including performance and integration tests.
 
 - **Deliverable 6: Machine Learning and Projections**  
-  _Delivery Date:_ [To Be Determined]  
-  _Description:_ Integrate machine learning modules that use historical data to generate projections and additional insights, enhancing overall analytics.
+  _Delivery Date:_ Completed  
+  _Description:_ Integrate machine learning modules that use historical data to generate projections and additional insights, enhancing overall analytics. This includes both general time series forecasting and style-based forecasting for product categories.
 
 ---
 
@@ -71,6 +71,7 @@ Since hardware is not a primary concern (development will occur on a client lapt
 
   - Python (FastAPI, SQLAlchemy, Alembic)
   - JavaScript/TypeScript (Next.js, React)
+  - Machine Learning: NumPy, Pandas for data processing and forecasting
 
 - **Database:**
 
@@ -138,7 +139,7 @@ _Note: Adjust the dates as needed._
 | Frontend Initial Setup         | Carter Esparza (CTO)      | Next.js, React, Material‑UI, @tanstack/react-query, Axios   | 02/22 - 04/14 |
 | Frontend Finalization          | Carter Esparza (CTO)      | Next.js, React, responsive dashboard components             | 03/28 - 04/14 |
 | Testing & Integration          | Carter Esparza (CTO) / QA | Unit tests, integration tests, performance profiling        | 02/22 - 04/14 |
-| Machine Learning & Projections | Carter Esparza (CTO)      | Python ML libraries, Pandas, scikit-learn (or equivalents)  | TBD           |
+| Machine Learning & Projections | Carter Esparza (CTO)      | Python ML libraries, Pandas, NumPy, forecasting algorithms  | Completed     |
 
 ### 4.4.3 Class Schedule (Optional)
 

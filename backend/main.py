@@ -1,7 +1,7 @@
 # main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.v1 import users, uploads, dashboard, analytics
+from api.v1 import users, uploads, dashboard, analytics, projections, test_data
 from dotenv import load_dotenv
 import os
 
@@ -14,6 +14,8 @@ app = FastAPI()
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
 ]
 
 # Add the CORS middleware to allow cross-origin requests from your frontend.
@@ -34,3 +36,5 @@ app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(uploads.router, prefix="/uploads", tags=["uploads"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+app.include_router(projections.router, prefix="/projections", tags=["projections"])
+app.include_router(test_data.router, prefix="/test-data", tags=["test_data"])

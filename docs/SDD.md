@@ -74,7 +74,7 @@ The system is partitioned into the following main components:
 - **Backend (FastAPI):**  
   Handles file uploads, bulk data ingestion, progress tracking, analytics aggregation, and integrated machine learning projections.
 - **Machine Learning Module:**  
-  Integrated within the backend to generate future projections based on historical data.
+  Integrated within the backend to generate future projections based on historical data, including both general sales forecasting and style-specific forecasting.
 - **Database (PostgreSQL):**  
   Stores all persistent data including Users, Uploads, Orders, and LineItems, with support for bulk inserts and query indexing.
 - **Frontend (Next.js/React):**  
@@ -88,7 +88,7 @@ Components interact primarily through RESTful endpoints:
 - The **Backend** processes files by ingesting data into the **Database** (using bulk inserts) and updates progress fields.
 - The **Frontend** polls the **Backend** (using a specific status endpoint) to display real-time progress.
 - The **Analytics API** aggregates data from the **Database** and, when applicable, integrates machine learning projections.
-- The **Machine Learning Module** processes historical data and outputs projections that are merged into analytics results.
+- The **Machine Learning Module** processes historical data and outputs projections that are merged into analytics results. It includes both general time series forecasting and style-based forecasting for product categories.
 
 ### 6.2.3 Architectural Design Diagrams
 
@@ -245,10 +245,34 @@ graph TD
   - Other functions include top products, top cities, repeat customers, and discount code analytics.
   - Integrated functions that apply machine learning projections to historical data.
 
+#### 6.3.1.6 Detailed Class Description: TimeSeriesForecaster
+
+- **Class Name:** `TimeSeriesForecaster`
+- **Purpose:** Generates time series forecasts for sales data based on historical orders.
+- **Key Methods:**
+  - `load_data()`: Loads and prepares order data from the database.
+  - `forecast(days, model)`: Generates sales forecasts for the specified number of days using the selected model.
+  - `forecast_naive(days)`: Implements a naive seasonal forecasting approach.
+  - `forecast_arima(days)`: Implements an ARIMA-based forecasting approach.
+
+#### 6.3.1.7 Detailed Class Description: StyleForecaster
+
+- **Class Name:** `StyleForecaster`
+- **Purpose:** Generates style-specific forecasts for product sales based on historical order data.
+- **Key Methods:**
+  - `extract_style(product_name)`: Extracts style information from product names.
+  - `load_data()`: Loads and prepares style-specific order data from the database.
+  - `prepare_data()`: Processes data for forecasting, adding features like day of week and rolling averages.
+  - `forecast_naive(days)`: Implements a naive seasonal forecasting approach for styles.
+  - `forecast_arima(days)`: Placeholder for ARIMA-based style forecasting.
+  - `forecast(days, model)`: Main method that generates style-specific forecasts using the selected model.
+
 ### 6.3.2 Detailed Interface Descriptions
 
 - **REST API Interfaces:**
   - Endpoints for file upload (`POST /uploads/`), upload progress (`GET /uploads/status/{upload_id}`), analytics (`GET /analytics/full` and `/analytics/custom`), and historical uploads (`GET /uploads/history`).
+  - Forecasting endpoints (`GET /projections/forecast` and `GET /projections/style-forecast`) for general and style-specific sales projections.
+  - Models information endpoint (`GET /projections/models`) to list available forecasting models.
   - Data is exchanged via JSON over HTTP.
 - **Module Interfaces:**
   - The backend processing module, including the bulk ingestion function (`process_shopify_file`), is invoked asynchronously via Redis/RQ.
@@ -260,6 +284,7 @@ graph TD
 - **Upload Structure:** Contains file metadata along with `status`, `total_rows`, and `records_processed`.
 - **LineItem Structure:** Contains line item details such as quantity, name, price, and discount.
 - **Analytics Result Structure:** Nested JSON objects and arrays representing aggregated metrics (e.g., orders summary, time series data, etc.).
+- **Forecast Result Structure:** JSON objects containing forecast data, model metadata, and confidence metrics. Style forecasts include style-specific metrics and predictions.
 
 ### 6.3.4 Detailed Design Diagrams
 

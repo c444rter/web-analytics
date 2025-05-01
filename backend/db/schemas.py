@@ -60,13 +60,13 @@ class UploadHistoryResponse(BaseModel):
 class LineItemBase(BaseModel):
     lineitem_quantity: Optional[int]
     lineitem_name: Optional[str]
-    lineitem_price: Optional[str]
-    lineitem_compare_at_price: Optional[str]
+    lineitem_price: Optional[float]  # Changed from str to float
+    lineitem_compare_at_price: Optional[float]  # Changed from str to float
     lineitem_sku: Optional[str]
     lineitem_requires_shipping: Optional[str]
     lineitem_taxable: Optional[str]
     lineitem_fulfillment_status: Optional[str]
-    lineitem_discount: Optional[str]
+    lineitem_discount: Optional[float]  # Changed from str to float
     variant_id: Optional[str]
 
 class LineItemOut(LineItemBase):
@@ -80,7 +80,7 @@ class OrderBase(BaseModel):
     name: str
     email: EmailStr
     financial_status: Optional[str]
-    total: Optional[str]
+    total: Optional[float]  # Changed from str to float
     order_id: Optional[str]
 
 class OrderOut(OrderBase):
