@@ -69,14 +69,15 @@ Key features include:
 ### Prerequisites
 - Python 3.8+
 - Node.js 16+
-- PostgreSQL 14+
-- Redis
+- Supabase account (for database and storage)
+- Railway account (for backend hosting)
+- Vercel account (for frontend hosting)
 
-### Installation
+### Local Development Setup
 
 1. Clone the repository:
    ```
-   git clone <repository-url>
+   git clone https://github.com/c444rter/web-analytics.git
    cd web-analytics
    ```
 
@@ -90,7 +91,7 @@ Key features include:
    pip install -r requirements.txt
    
    # Set up environment variables
-   cp backend/.env.example backend/.env
+   cp backend/.env.supabase.example backend/.env
    # Edit backend/.env with your configuration
    ```
 
@@ -100,7 +101,7 @@ Key features include:
    npm install
    
    # Set up environment variables
-   cp .env.local.example .env.local
+   cp .env.local.supabase.example .env.local
    # Edit .env.local with your configuration
    ```
 
@@ -110,7 +111,7 @@ Key features include:
    alembic upgrade head
    ```
 
-### Running the Application
+### Running the Application Locally
 
 1. Start the backend:
    ```
@@ -130,6 +131,40 @@ Key features include:
 
 4. Access the application at http://localhost:3000
 
+### Production Deployment
+
+#### Supabase Setup (Database & Storage)
+
+1. Create a Supabase project at https://supabase.com/
+2. Create a storage bucket named "uploads" with appropriate permissions
+3. Note your Supabase URL and anon key from Project Settings → API
+
+#### Railway Setup (Backend)
+
+1. Create a new project on Railway
+2. Connect your GitHub repository
+3. Configure the following environment variables:
+   - `DATABASE_URL`: Your Supabase PostgreSQL connection string
+   - `SECRET_KEY`: A secure random string
+   - `NEXTAUTH_SECRET`: A secure random string
+   - `SUPABASE_URL`: Your Supabase project URL
+   - `SUPABASE_KEY`: Your Supabase anon key
+   - `BUCKET_NAME`: "uploads"
+4. Set the root directory to `/backend`
+5. Set the start command to `uvicorn main:app --host 0.0.0.0 --port $PORT`
+6. Deploy the API service
+7. Add a second service for the worker with the start command `rq worker --with-scheduler`
+
+#### Vercel Setup (Frontend)
+
+1. Import your GitHub repository to Vercel
+2. Set the root directory to `/frontend`
+3. Configure the following environment variables:
+   - `NEXT_PUBLIC_BACKEND_URL`: Your Railway API URL
+   - `NEXTAUTH_SECRET`: Same value used in Railway
+   - `NEXTAUTH_URL`: Your Vercel deployment URL
+4. Deploy the frontend
+
 ## Security Notes
 
 - Never commit `.env` files containing secrets to the repository
@@ -142,6 +177,8 @@ For more detailed information, see the following documentation:
 - [Software Requirements Specification](docs/SRS.md)
 - [Software Development Plan](docs/SDP.md)
 - [Software Design Description](docs/SDD.md)
+- [Deployment Guide](docs/DEPLOYMENT.md)
+- [Testing Guide](docs/TESTING.md)
 
 ## License
 

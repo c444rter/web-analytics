@@ -16,6 +16,10 @@ origins = [
     "http://127.0.0.1:3000",
     "http://localhost:3001",
     "http://127.0.0.1:3001",
+    # Allow Vercel preview deployments
+    "https://*.vercel.app",
+    # Add your custom domain when ready
+    # "https://yourdomain.com",
 ]
 
 # Add the CORS middleware to allow cross-origin requests from your frontend.
