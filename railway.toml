@@ -17,3 +17,13 @@ dockerfilePath = "backend/Dockerfile"
 startCommand = "rq worker --with-scheduler"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
+
+# Migrations service configuration
+[build.migrations]
+builder = "DOCKERFILE"
+dockerfilePath = "backend/Dockerfile"
+
+[deploy.migrations]
+startCommand = "alembic upgrade head"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
