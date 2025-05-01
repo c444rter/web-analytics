@@ -5,17 +5,19 @@ import React, { useEffect } from "react";
 import { SessionProvider, useSession } from "next-auth/react";
 
 function TokenSync() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (session && session.user && session.user.accessToken) {
+    // Only sync token when session is fully loaded and authenticated
+    if (status === "authenticated" && session?.user?.accessToken) {
       localStorage.setItem("token", session.user.accessToken);
       console.log("Token synced:", session.user.accessToken);
-    } else {
-      // Optionally, if the session is removed, clear the token.
+    } else if (status === "unauthenticated") {
+      // Clear token when explicitly unauthenticated
       localStorage.removeItem("token");
     }
-  }, [session]);
+    // Don't do anything during "loading" state to avoid flashing
+  }, [session, status]);
 
   return null;
 }

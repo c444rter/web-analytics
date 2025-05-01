@@ -7,20 +7,27 @@ from db import models
 from db.database import SessionLocal
 from sqlalchemy.orm import Session
 
-def safe_float(val):
+def safe_float(val, default=None):
     """
     Attempts to parse float from val.
-    Returns 0.0 if invalid or empty.
+    Returns default if invalid or empty.
+    
+    Args:
+        val: The value to convert to float
+        default: The default value to return if conversion fails (default is None)
+    
+    Returns:
+        float or default: The converted float value or default if conversion fails
     """
     if val is None or (isinstance(val, str) and not val.strip()):
-        return 0.0
+        return default
     try:
         f = float(val)
-    except (ValueError, TypeError):
-        return 0.0
-    if math.isfinite(f):
+        if not math.isfinite(f):
+            return default
         return f
-    return 0.0
+    except (ValueError, TypeError):
+        return default
 
 def safe_date(val):
     """
@@ -172,16 +179,28 @@ def process_shopify_file(file_location: str, user_id: int, upload_id: int):
 
             # Build line item dict from the row
             # We'll link it to the actual `order_id` PK after we insert the orders
+            # Ensure all numeric values are properly converted to float or default to 0
+            # This prevents empty strings from being stored in numeric fields
+            lineitem_price = safe_float(row.get("Lineitem price"), 0)
+            lineitem_compare_price = safe_float(row.get("Lineitem compare at price"), 0)
+            lineitem_discount = safe_float(row.get("Lineitem discount"), 0)
+            lineitem_quantity = safe_float(row.get("Lineitem quantity"), 0)
+            
+            # Skip line items with invalid prices or quantities
+            if lineitem_price is None or lineitem_quantity is None:
+                processed += 1
+                continue
+                
             line_item_data = {
-                "lineitem_quantity": safe_float(row.get("Lineitem quantity")),
+                "lineitem_quantity": lineitem_quantity,
                 "lineitem_name": str(row.get("Lineitem name") or ""),
-                "lineitem_price": str(safe_float(row.get("Lineitem price"))),
-                "lineitem_compare_at_price": str(row.get("Lineitem compare at price") or ""),
+                "lineitem_price": lineitem_price,
+                "lineitem_compare_at_price": lineitem_compare_price,
                 "lineitem_sku": str(row.get("Lineitem sku") or ""),
                 "lineitem_requires_shipping": str(row.get("Lineitem requires shipping") or ""),
                 "lineitem_taxable": str(row.get("Lineitem taxable") or ""),
                 "lineitem_fulfillment_status": str(row.get("Lineitem fulfillment status") or ""),
-                "lineitem_discount": safe_float(row.get("Lineitem discount")),
+                "lineitem_discount": lineitem_discount,
                 "variant_id": str(row.get("Lineitem sku") or ""),
                 "order_id": None,  # We'll fill in later once we know the DB PK
             }

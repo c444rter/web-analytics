@@ -1,9 +1,91 @@
 # backend/core/redis_client.py
 import os
+import json
 import redis
+from datetime import timedelta
 
 redis_host = os.getenv("REDIS_HOST", "localhost")
 redis_port = int(os.getenv("REDIS_PORT", 6379))
 redis_db = int(os.getenv("REDIS_DB", 0))
 
 redis_client = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
+
+# Default cache expiration time (in seconds)
+DEFAULT_CACHE_EXPIRY = 60 * 60 * 6  # 1 hour
+
+def cache_get(key):
+    """
+    Get a value from the cache.
+    
+    Args:
+        key (str): The cache key
+        
+    Returns:
+        The cached value (deserialized from JSON) or None if not found
+    """
+    value = redis_client.get(key)
+    if value:
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            return value.decode('utf-8')
+    return None
+
+def cache_set(key, value, expiry=DEFAULT_CACHE_EXPIRY):
+    """
+    Set a value in the cache.
+    
+    Args:
+        key (str): The cache key
+        value: The value to cache (will be serialized to JSON)
+        expiry (int): Expiration time in seconds
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        serialized = json.dumps(value)
+        return redis_client.setex(key, expiry, serialized)
+    except (TypeError, ValueError):
+        # If value can't be JSON serialized, don't cache it
+        return False
+
+def cache_delete(key):
+    """
+    Delete a value from the cache.
+    
+    Args:
+        key (str): The cache key
+        
+    Returns:
+        int: Number of keys deleted
+    """
+    return redis_client.delete(key)
+
+def cache_clear_pattern(pattern):
+    """
+    Delete all keys matching a pattern.
+    
+    Args:
+        pattern (str): Pattern to match (e.g., "user:*:analytics")
+        
+    Returns:
+        int: Number of keys deleted
+    """
+    keys = redis_client.keys(pattern)
+    if keys:
+        return redis_client.delete(*keys)
+    return 0
+
+def generate_cache_key(prefix, *args):
+    """
+    Generate a cache key from a prefix and arguments.
+    
+    Args:
+        prefix (str): The prefix for the key
+        *args: Additional arguments to include in the key
+        
+    Returns:
+        str: The generated cache key
+    """
+    return f"{prefix}:{':'.join(str(arg) for arg in args)}"

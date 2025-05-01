@@ -66,6 +66,7 @@ from db import models
 def get_top_cities_by_orders(db: Session, user_id: int, upload_id: int, limit: int = 5):
     """
     Return the top N cities by count of orders, using the shipping_city field.
+    Filter out empty, null, or 'nan' values.
     """
     results = (
         db.query(
@@ -74,7 +75,11 @@ def get_top_cities_by_orders(db: Session, user_id: int, upload_id: int, limit: i
         )
         .filter(
             models.Order.user_id == user_id,
-            models.Order.upload_id == upload_id
+            models.Order.upload_id == upload_id,
+            # Filter out empty, null, or 'nan' values
+            models.Order.shipping_city.isnot(None),
+            models.Order.shipping_city != "",
+            models.Order.shipping_city != "nan"
         )
         .group_by(models.Order.shipping_city)
         .order_by(func.count(models.Order.id).desc())  # descending by order_count
@@ -94,6 +99,7 @@ def get_top_cities_by_orders(db: Session, user_id: int, upload_id: int, limit: i
 def get_top_cities_by_revenue(db: Session, user_id: int, upload_id: int, limit: int = 5):
     """
     Return the top N cities by sum of Order.total (revenue).
+    Filter out empty, null, or 'nan' values.
     """
     results = (
         db.query(
@@ -102,7 +108,14 @@ def get_top_cities_by_revenue(db: Session, user_id: int, upload_id: int, limit: 
         )
         .filter(
             models.Order.user_id == user_id,
-            models.Order.upload_id == upload_id
+            models.Order.upload_id == upload_id,
+            # Filter out empty, null, or 'nan' values
+            models.Order.shipping_city.isnot(None),
+            models.Order.shipping_city != "",
+            models.Order.shipping_city != "nan",
+            # Ensure total is valid
+            models.Order.total.isnot(None),
+            models.Order.total != 0
         )
         .group_by(models.Order.shipping_city)
         .order_by(func.sum(models.Order.total).desc())
@@ -151,27 +164,32 @@ def get_top_products_by_revenue(db: Session, user_id: int, upload_id: int, limit
     Return the top N products by total revenue (sum of lineitem_price * lineitem_quantity).
     Make sure lineitem_price is also stored as numeric for accurate aggregation.
     """
+    # Use a simpler approach that avoids casting empty strings to numeric
     results = (
-    db.query(
-        models.LineItem.lineitem_name.label("product_name"),
-        func.sum(
-            models.LineItem.lineitem_quantity *
-            func.cast(func.nullif(models.LineItem.lineitem_price, ''), sa.Numeric(12, 2))
-        ).label("product_revenue")
+        db.query(
+            models.LineItem.lineitem_name.label("product_name"),
+            func.sum(
+                models.LineItem.lineitem_quantity * models.LineItem.lineitem_price
+            ).label("product_revenue")
+        )
+        .join(models.Order, models.LineItem.order_id == models.Order.id)
+        .filter(
+            models.Order.user_id == user_id,
+            models.Order.upload_id == upload_id,
+            # Filter out NULL or zero prices to avoid calculation issues
+            # Note: Removed empty string comparison which causes PostgreSQL type errors
+            models.LineItem.lineitem_price.isnot(None),
+            models.LineItem.lineitem_price > 0
+        )
+        .group_by(models.LineItem.lineitem_name)
+        .order_by(
+            func.sum(
+                models.LineItem.lineitem_quantity * models.LineItem.lineitem_price
+            ).desc()
+        )
+        .limit(limit)
+        .all()
     )
-    .join(models.Order, models.LineItem.order_id == models.Order.id)
-    .filter(
-        models.Order.user_id == user_id,
-        models.Order.upload_id == upload_id
-    )
-    .group_by(models.LineItem.lineitem_name)
-    .order_by(func.sum(
-        models.LineItem.lineitem_quantity *
-        func.cast(func.nullif(models.LineItem.lineitem_price, ''), sa.Numeric(12, 2))
-    ).desc())
-    .limit(limit)
-    .all()
-)
 
 
     return [
@@ -271,6 +289,7 @@ def get_orders_by_day_of_week(db: Session, user_id: int, upload_id: int):
 def get_top_discount_codes(db: Session, user_id: int, upload_id: int, limit: int = 5):
     """
     Return the top discount codes by how many orders used them.
+    Filter out empty, null, or 'nan' values.
     """
     results = (
         db.query(
@@ -280,7 +299,10 @@ def get_top_discount_codes(db: Session, user_id: int, upload_id: int, limit: int
         .filter(
             models.Order.user_id == user_id,
             models.Order.upload_id == upload_id,
-            models.Order.discount_code != ""  # skip blank codes
+            # Filter out empty, null, or 'nan' values
+            models.Order.discount_code.isnot(None),
+            models.Order.discount_code != "",
+            models.Order.discount_code != "nan"
         )
         .group_by(models.Order.discount_code)
         .order_by(func.count(models.Order.id).desc())
@@ -299,6 +321,7 @@ def get_top_discount_codes(db: Session, user_id: int, upload_id: int, limit: int
 def get_top_discount_codes_by_savings(db: Session, user_id: int, upload_id: int, limit: int = 5):
     """
     Return top discount codes by total discount_amount across orders.
+    Filter out empty, null, or 'nan' values.
     """
     results = (
         db.query(
@@ -308,7 +331,13 @@ def get_top_discount_codes_by_savings(db: Session, user_id: int, upload_id: int,
         .filter(
             models.Order.user_id == user_id,
             models.Order.upload_id == upload_id,
-            models.Order.discount_code != ""
+            # Filter out empty, null, or 'nan' values
+            models.Order.discount_code.isnot(None),
+            models.Order.discount_code != "",
+            models.Order.discount_code != "nan",
+            # Ensure discount_amount is valid
+            models.Order.discount_amount.isnot(None),
+            models.Order.discount_amount > 0
         )
         .group_by(models.Order.discount_code)
         .order_by(func.sum(models.Order.discount_amount).desc())

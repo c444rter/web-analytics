@@ -31,7 +31,7 @@
 The purpose of this document is to specify in precise detail the software to be developed for the Shopify Analytics App. This SRS serves as a contract between the customer and the solution provider by ensuring that both parties have a common understanding of the application’s functionality, performance, environment, and non‑functional requirements.
 
 **System Overview:**  
-The system provides a backend solution built with FastAPI, PostgreSQL, and Redis to import and process Shopify export files (in CSV, Excel, JSON, or ZIP formats). It optimizes ingestion by using bulk inserts and real‑time progress tracking so that large datasets (e.g., around 13,000 records) can be processed in under 30 seconds. A React/Next.js frontend displays an analytics dashboard featuring customizable KPI widgets, drag‑and‑drop capabilities, and interactive data visualizations. The overall design ensures responsiveness, scalability, and secure handling of sensitive data.
+The system provides a backend solution built with FastAPI, PostgreSQL, and Redis to import and process Shopify export files (in CSV, Excel, JSON, or ZIP formats). It optimizes ingestion by using bulk inserts and real‑time progress tracking so that large datasets (e.g., around 13,000 records) can be processed in under 30 seconds. A React/Next.js frontend displays an analytics dashboard featuring customizable KPI widgets, drag‑and‑drop capabilities, and interactive data visualizations. The system also includes machine learning capabilities for sales forecasting, including style-based forecasting that predicts future sales by product style categories. The overall design ensures responsiveness, scalability, and secure handling of sensitive data.
 
 A high-level UML diagram for this system would illustrate:
 - **Frontend:** Next.js React app with responsive dashboards, an upload page, and a dynamic menu system.
@@ -172,7 +172,7 @@ The GUI provides users with an intuitive way to interact with the system. The pr
 - **Role-Based Access Control:**  
   Specify additional user roles and permissions for administration versus standard access.
 - **Advanced Analytics Integration:**  
-  Plan for integration with additional data sources, enhanced export capabilities, and further customization of dashboard widgets.
+  Plan for integration with additional data sources, enhanced export capabilities, and further customization of dashboard widgets. Expand machine learning capabilities to include more sophisticated forecasting models and additional product categorization methods beyond style-based forecasting.
 - **Mobile and Cross-Platform Improvements:**  
   Expand on responsive design and dedicated mobile interfaces as user demand increases.
 - **Real-Time Collaboration:**  
@@ -181,5 +181,3 @@ The GUI provides users with an intuitive way to interact with the system. The pr
   Integration of advanced monitoring and alerting systems (e.g., Prometheus, Grafana) to ensure uptime and performance.
 
 ---
-
-

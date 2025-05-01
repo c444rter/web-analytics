@@ -2,16 +2,31 @@
 .next/
 out/
 node_modules/
+.vercel/
 
 # FastAPI
 __pycache__/
 *.pyc
 *.log
 venv/
+env/
 instance/
 .env
 .env.*
 *.egg-info/
+
+# Data and uploads
+uploads/*
+!uploads/.gitkeep
+backend/test_data/*
+!backend/test_data/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
 # General
 .idea/
@@ -22,3 +37,21 @@ tmp/
 temp/
 tmp.*
 Thumbs.db
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage reports
+coverage/
+.coverage
+htmlcov/
+
+# Cache
+.cache/
+.pytest_cache/
+.mypy_cache/
