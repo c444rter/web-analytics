@@ -4,7 +4,8 @@ FROM python:3.11-slim
 WORKDIR /app/backend
 
 # Copy requirements.txt from the project root
-COPY ../requirements.txt /app/requirements.txt
+# We'll need to ensure requirements.txt is in the build context
+COPY requirements.txt /app/requirements.txt
 RUN pip install --upgrade pip && pip install --no-cache-dir -r /app/requirements.txt
 
 # Copy the rest of the project from the build context into /app
