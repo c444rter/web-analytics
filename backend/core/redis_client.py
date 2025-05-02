@@ -3,12 +3,47 @@ import os
 import json
 import redis
 from datetime import timedelta
+from urllib.parse import urlparse
 
-redis_host = os.getenv("REDIS_HOST", "localhost")
-redis_port = int(os.getenv("REDIS_PORT", 6379))
-redis_db = int(os.getenv("REDIS_DB", 0))
-
-redis_client = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
+# Try to use REDIS_PUBLIC_URL first, fall back to individual parameters
+redis_url = os.getenv("REDIS_PUBLIC_URL")
+if redis_url:
+    # Parse the Redis URL to get connection details
+    parsed_url = urlparse(redis_url)
+    redis_host = parsed_url.hostname
+    redis_port = parsed_url.port
+    redis_password = parsed_url.password
+    redis_user = parsed_url.username
+    redis_db = int(os.getenv("REDIS_DB", 0))
+    
+    # Connect using URL parameters
+    redis_client = redis.Redis(
+        host=redis_host,
+        port=redis_port,
+        username=redis_user,
+        password=redis_password,
+        db=redis_db,
+        ssl=False  # Set to True if using SSL
+    )
+else:
+    # Fall back to individual parameters
+    redis_host = os.getenv("REDIS_HOST", "localhost")
+    redis_port = int(os.getenv("REDIS_PORT", 6379))
+    redis_password = os.getenv("REDIS_PASSWORD")
+    redis_user = os.getenv("REDIS_USER")
+    redis_db = int(os.getenv("REDIS_DB", 0))
+    
+    # Connect using individual parameters
+    if redis_password:
+        redis_client = redis.Redis(
+            host=redis_host, 
+            port=redis_port, 
+            username=redis_user,
+            password=redis_password,
+            db=redis_db
+        )
+    else:
+        redis_client = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
 
 # Default cache expiration time (in seconds)
 DEFAULT_CACHE_EXPIRY = 60 * 60 * 6  # 1 hour

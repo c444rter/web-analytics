@@ -14,7 +14,7 @@ const authOptions = {
       },
       async authorize(credentials) {
         // Call the new JSON login endpoint
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/json-token`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/json-token`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

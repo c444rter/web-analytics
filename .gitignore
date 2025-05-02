@@ -55,3 +55,5 @@ htmlcov/
 .cache/
 .pytest_cache/
 .mypy_cache/
+.vercel
+.env*.local
