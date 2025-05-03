@@ -4,30 +4,33 @@ const nextConfig = {
   
   // Add rewrites to handle API requests
   async rewrites() {
+    // Use NEXT_PUBLIC_API_URL as fallback if NEXT_PUBLIC_BACKEND_URL is not available
+    const apiBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.mydavids.com';
+    
     return [
       {
         source: '/users/:path*',
-        destination: `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/:path*`,
+        destination: `${apiBaseUrl}/users/:path*`,
       },
       {
         source: '/analytics/:path*',
-        destination: `${process.env.NEXT_PUBLIC_BACKEND_URL}/analytics/:path*`,
+        destination: `${apiBaseUrl}/analytics/:path*`,
       },
       {
         source: '/uploads/:path*',
-        destination: `${process.env.NEXT_PUBLIC_BACKEND_URL}/uploads/:path*`,
+        destination: `${apiBaseUrl}/uploads/:path*`,
       },
       {
         source: '/dashboard/:path*',
-        destination: `${process.env.NEXT_PUBLIC_BACKEND_URL}/dashboard/:path*`,
+        destination: `${apiBaseUrl}/dashboard/:path*`,
       },
       {
         source: '/projections/:path*',
-        destination: `${process.env.NEXT_PUBLIC_BACKEND_URL}/projections/:path*`,
+        destination: `${apiBaseUrl}/projections/:path*`,
       },
       {
         source: '/test-data/:path*',
-        destination: `${process.env.NEXT_PUBLIC_BACKEND_URL}/test-data/:path*`,
+        destination: `${apiBaseUrl}/test-data/:path*`,
       },
     ];
   },
