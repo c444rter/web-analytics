@@ -21,6 +21,41 @@ admin_headers = {
     "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"
 }
 
+def get_upload_signed_url(file_path, expires_in=60):
+    """Generate a signed URL for uploading a file to Supabase Storage
+    
+    Args:
+        file_path: The path where the file will be stored
+        expires_in: The expiration time in seconds (default: 60 seconds)
+    
+    Returns:
+        str: The signed URL for uploading
+    """
+    try:
+        # Construct the signed URL endpoint
+        signed_url_endpoint = f"{SUPABASE_URL}/storage/v1/object/sign/{BUCKET_NAME}/{file_path}"
+        
+        # Always use admin headers for generating signed URLs
+        # This is secure because it only happens on the backend
+        response = requests.post(
+            signed_url_endpoint,
+            headers=admin_headers,
+            json={"expiresIn": expires_in}
+        )
+        
+        # Check if the request was successful
+        if response.status_code != 200:
+            raise Exception(f"Failed to generate signed URL: {response.text}")
+        
+        # Return the signed URL
+        result = response.json()
+        if "signedURL" not in result:
+            raise Exception("No signed URL in response")
+            
+        return result["signedURL"]
+    except Exception as e:
+        raise Exception(f"Supabase signed URL error: {str(e)}")
+
 def upload_file_to_storage(file_content, file_path, use_admin=False):
     """Upload a file to Supabase Storage using REST API
     

@@ -16,8 +16,9 @@ def process_shopify_file_task(storage_path: str, user_id: int, upload_id: int):
         temp_path = temp_file.name
     
     try:
-        # Download file from Supabase Storage to temporary location
-        download_file_from_storage(storage_path, temp_path)
+        print(f"Downloading file from Supabase Storage: {storage_path}")
+        # Download file from Supabase Storage to temporary location - use admin key for background tasks
+        download_file_from_storage(storage_path, temp_path, use_admin=True)
         
         # Process the file using the existing function
         process_shopify_file(temp_path, user_id, upload_id)

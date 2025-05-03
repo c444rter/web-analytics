@@ -2,6 +2,7 @@
 
 import os
 import tempfile
+import requests
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from rq import Queue
@@ -9,7 +10,7 @@ from db import crud, schemas, models
 from db.database import SessionLocal
 from core.deps import get_current_user
 from core.redis_client import redis_client
-from core.supabase_client import upload_file_to_storage, get_file_url
+from core.supabase_client import upload_file_to_storage, get_file_url, get_upload_signed_url, BUCKET_NAME
 from tasks import process_shopify_file_task
 from typing import List
 
@@ -41,15 +42,43 @@ async def upload_file(
     storage_path = f"{current_user.id}/{file.filename}"
     
     try:
-        # Upload to Supabase Storage
-        file_url = upload_file_to_storage(contents, storage_path)
+        # Check Redis connection
+        try:
+            redis_test = redis_client.ping()
+            print(f"Redis connection test: {redis_test}")
+        except Exception as redis_error:
+            print(f"Redis connection error: {str(redis_error)}")
+            import traceback
+            traceback.print_exc()
+        
+        # Step 1: Generate a signed URL for upload
+        print(f"Generating signed URL for path: {storage_path}")
+        signed_url = get_upload_signed_url(storage_path)
+        print(f"Signed URL generated successfully")
+        
+        # Step 2: Upload the file using the signed URL
+        print(f"Uploading file using signed URL")
+        upload_response = requests.put(
+            signed_url,
+            data=contents,
+            headers={"Content-Type": "application/octet-stream"}
+        )
+        
+        if upload_response.status_code not in (200, 201):
+            print(f"Upload failed with status {upload_response.status_code}: {upload_response.text}")
+            raise Exception(f"Upload failed: {upload_response.text}")
+        
+        print(f"File uploaded successfully")
+        
+        # Generate the file URL for database storage
+        file_url = f"supabase://{BUCKET_NAME}/{storage_path}"
         
         # Create database record with storage path
         upload_data = schemas.UploadCreate(file_name=file_name)
         db_upload = crud.create_upload(
             db,
             upload=upload_data,
-            file_path=file_url,  # Store Supabase path
+            file_path=file_url,
             file_size=file_size,
             user_id=current_user.id
         )
@@ -69,10 +98,13 @@ async def upload_file(
             "file_size": db_upload.file_size,
             "uploaded_at": db_upload.uploaded_at,
             "status": db_upload.status,
-            "job_id": job_id_str,        # Ensure job ID is a string
-            "upload_id": db_upload.id      # DB-based upload ID
+            "job_id": job_id_str,
+            "upload_id": db_upload.id
         }
     except Exception as e:
+        print(f"Upload error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 
@@ -113,8 +145,8 @@ async def get_upload_history(db: Session = Depends(get_db), current_user: models
             if upload.file_path and upload.file_path.startswith("supabase://"):
                 # Extract the storage path from the URL
                 storage_path = upload.file_path.replace(f"supabase://{os.environ.get('BUCKET_NAME', 'uploads')}/", "")
-                # Generate a signed URL
-                upload.download_url = get_file_url(storage_path)
+                # Generate a signed URL with admin key for downloads
+                upload.download_url = get_file_url(storage_path, use_admin=True)
             else:
                 upload.download_url = None
                 
