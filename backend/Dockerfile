@@ -11,9 +11,10 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -r /app/requirements
 # Copy the rest of the project from the build context into /app
 COPY . /app
 
-EXPOSE 8000
+# Use PORT environment variable with a default of 8000
+ENV PORT=8000
 ENV PYTHONUNBUFFERED=1
 
 # Since the working directory is now /app/backend,
 # use "main:app" (not "backend.main:app") for Uvicorn.
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD uvicorn main:app --host 0.0.0.0 --port $PORT
