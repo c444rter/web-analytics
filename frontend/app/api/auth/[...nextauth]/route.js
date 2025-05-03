@@ -13,7 +13,7 @@ const authOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // Call the new JSON login endpoint
+        // Call the new JSON login endpoint - must use absolute URL for server-side requests
         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/json-token`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },

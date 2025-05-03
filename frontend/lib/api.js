@@ -4,7 +4,8 @@ import { toast } from "react-toastify"; // optional: for notifications
 import { getSession } from "next-auth/react";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000",
+  // Use relative URLs to leverage Next.js rewrites
+  baseURL: "/",
   timeout: 15000, // 15 second timeout
   // Add retry logic for network issues
   retry: 3,
