@@ -13,6 +13,15 @@ env/
 instance/
 .env
 .env.*
+*.env
+.env.local
+.env.*.local
+backend/.env
+backend/.env.*
+backend/.env.local
+frontend/.env
+frontend/.env.*
+frontend/.env.local
 *.egg-info/
 
 # Data and uploads
@@ -57,3 +66,13 @@ htmlcov/
 .mypy_cache/
 .vercel
 .env*.local
+
+# Utility scripts that might contain sensitive information
+check_redis.py
+check_redis_direct.py
+check_supabase.py
+create_bucket.py
+create_bucket_policy.py
+create_bucket_with_service_role.py
+list_buckets.py
+check_db_connection.py
