@@ -16,9 +16,5 @@ ENV PYTHONUNBUFFERED=1
 
 # Since the working directory is now /app/backend,
 # use "main:app" (not "backend.main:app") for Uvicorn.
-# Create a shell script to handle environment variable expansion
-RUN echo '#!/bin/bash\n\nport=${PORT:-8000}\necho "Starting server on port $port"\nuvicorn main:app --host 0.0.0.0 --port $port' > /app/start.sh && \
-    chmod +x /app/start.sh
-
-# Use JSON array format with the shell script
-CMD ["/bin/bash", "/app/start.sh"]
+# Use a hardcoded port for Railway
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
