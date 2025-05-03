@@ -17,4 +17,9 @@ ENV PYTHONUNBUFFERED=1
 
 # Since the working directory is now /app/backend,
 # use "main:app" (not "backend.main:app") for Uvicorn.
-CMD uvicorn main:app --host 0.0.0.0 --port $PORT
+# Create a shell script to handle environment variable expansion
+RUN echo '#!/bin/bash\nuvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}' > /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Use JSON array format with the shell script
+CMD ["/app/start.sh"]
