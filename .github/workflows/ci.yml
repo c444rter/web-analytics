@@ -65,6 +65,20 @@ jobs:
           PGRST_DB_ANON_ROLE: postgres
         ports:
           - 3000:3000
+      
+      minio:
+        image: minio/minio
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/live"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --entrypoint "server /data"
     
     steps:
     - uses: actions/checkout@v3
@@ -117,6 +131,54 @@ jobs:
         BUCKET_NAME: "uploads"
       run: |
         python -m pytest backend/tests/integration/ --cov=backend --cov-append
+    
+    - name: Test worker functionality
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/my_davids_test
+        SECRET_KEY: "test_secret_key"
+        REDIS_HOST: localhost
+        REDIS_PORT: 6379
+        REDIS_DB: 0
+        TESTING: "true"
+        SUPABASE_URL: "http://localhost:3000"
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        BUCKET_NAME: "uploads"
+      run: |
+        # Start worker in background
+        cd backend && python worker.py --burst &
+        WORKER_PID=$!
+        
+        # Wait for worker to initialize
+        sleep 5
+        
+        # Run a test that enqueues a job
+        python -c "
+        import redis
+        from rq import Queue
+        from tasks import process_test_task
+        
+        # Connect to Redis
+        r = redis.Redis(host='localhost', port=6379, db=0)
+        q = Queue(connection=r)
+        
+        # Enqueue a test job
+        job = q.enqueue(process_test_task, 'test_data')
+        
+        # Wait for job to complete
+        import time
+        max_wait = 30
+        while max_wait > 0 and job.get_status() != 'finished':
+            time.sleep(1)
+            max_wait -= 1
+        
+        # Check job status
+        assert job.get_status() == 'finished', f'Job failed with status: {job.get_status()}'
+        print('Worker test passed!')
+        "
+        
+        # Kill worker
+        kill $WORKER_PID || true
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -305,14 +367,21 @@ jobs:
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
-        # Deploy all services
-        railway up --detach
+        # Deploy API service
+        railway service ${{ secrets.RAILWAY_API_SERVICE_ID }} deploy --detach
         
         # Wait for deployment to complete
         sleep 30
         
-        # Explicitly redeploy the worker service to ensure it's updated
-        railway service restart worker
+        # Deploy worker service
+        railway service ${{ secrets.RAILWAY_WORKER_SERVICE_ID }} deploy --detach
+        
+        # Verify services are running
+        echo "Verifying API service..."
+        railway service ${{ secrets.RAILWAY_API_SERVICE_ID }} logs --limit 10
+        
+        echo "Verifying worker service..."
+        railway service ${{ secrets.RAILWAY_WORKER_SERVICE_ID }} logs --limit 10
 
   deploy-vercel:
     needs: build-and-push
