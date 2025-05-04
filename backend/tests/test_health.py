@@ -7,7 +7,8 @@ from sqlalchemy.orm import sessionmaker
 from unittest.mock import patch, MagicMock
 
 from main import app
-from db.database import Base, get_db
+from db.database import Base
+from core.deps import get_db
 
 # Create a test database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"

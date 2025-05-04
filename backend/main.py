@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import os
 import time
 from sqlalchemy.orm import Session
-from db.database import get_db
+from core.deps import get_db
 from core.redis_client import redis_client
 
 # Load environment variables from the .env file.

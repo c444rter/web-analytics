@@ -97,8 +97,8 @@ jobs:
         REDIS_DB: 0
         TESTING: "true"
         SUPABASE_URL: "http://localhost:3000"
-        SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcGRhaW5sYXNma2tnd3hvZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyMTIyMzEsImV4cCI6MjA2MTc4ODIzMX0.test-key-for-ci"
-        SUPABASE_SERVICE_ROLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcGRhaW5sYXNma2tnd3hvZXhtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjIxMjIzMSwiZXhwIjoyMDYxNzg4MjMxfQ.test-service-key-for-ci"
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         BUCKET_NAME: "uploads"
       run: |
         pytest backend/tests/ --cov=backend --cov-report=xml
@@ -112,8 +112,8 @@ jobs:
         REDIS_DB: 0
         TESTING: "true"
         SUPABASE_URL: "http://localhost:3000"
-        SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcGRhaW5sYXNma2tnd3hvZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyMTIyMzEsImV4cCI6MjA2MTc4ODIzMX0.test-key-for-ci"
-        SUPABASE_SERVICE_ROLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcGRhaW5sYXNma2tnd3hvZXhtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjIxMjIzMSwiZXhwIjoyMDYxNzg4MjMxfQ.test-service-key-for-ci"
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         BUCKET_NAME: "uploads"
       run: |
         python -m pytest backend/tests/integration/ --cov=backend --cov-append
@@ -230,8 +230,8 @@ jobs:
         REDIS_DB: 0
         TESTING: "true"
         SUPABASE_URL: "http://localhost:3000"
-        SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcGRhaW5sYXNma2tnd3hvZXhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyMTIyMzEsImV4cCI6MjA2MTc4ODIzMX0.test-key-for-ci"
-        SUPABASE_SERVICE_ROLE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcGRhaW5sYXNma2tnd3hvZXhtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjIxMjIzMSwiZXhwIjoyMDYxNzg4MjMxfQ.test-service-key-for-ci"
+        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         BUCKET_NAME: "uploads"
       run: |
         uvicorn main:app --host 0.0.0.0 --port 8000 &
