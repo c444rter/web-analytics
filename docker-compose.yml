@@ -37,7 +37,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    command: rq worker --with-scheduler
+    command: rq worker --with-scheduler --url redis://redis:6379/0 --name worker-local --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/my_davids
       SECRET_KEY: "YOUR_SECRET_KEY"

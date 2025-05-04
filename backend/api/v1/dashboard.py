@@ -1,13 +1,16 @@
 # api/v1/dashboard.py
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 import json
 import datetime
 import math
-from typing import Optional
+from typing import Optional, Dict, Any, List
 from db import models, schemas
 from core.deps import get_current_user, get_db
-from core.redis_client import cache_get, cache_set, generate_cache_key
+from core.redis_client import cache_get, cache_set, generate_cache_key, redis_client
+from rq import Queue
+from rq.registry import StartedJobRegistry, FinishedJobRegistry
+from rq.queue import FailedQueue
 
 router = APIRouter(tags=["dashboard"])
 
@@ -75,3 +78,64 @@ def orders_summary(
     cache_set(cache_key, summary)
     
     return summary
+
+@router.get("/redis-status", response_model=Dict[str, Any])
+def get_redis_status(current_user: models.User = Depends(get_current_user)):
+    """Get Redis queue status information."""
+    try:
+        # Check Redis connection
+        redis_connected = redis_client.ping()
+        
+        # Get queue information
+        queue = Queue(connection=redis_client)
+        registry = StartedJobRegistry(queue=queue)
+        
+        # Get counts
+        queued_jobs = queue.count
+        started_jobs = len(registry.get_job_ids())
+        
+        # Get job IDs
+        queued_job_ids = queue.job_ids
+        started_job_ids = registry.get_job_ids()
+        
+        # Get failed jobs
+        failed_queue = FailedQueue(connection=redis_client)
+        failed_job_ids = failed_queue.job_ids
+        failed_jobs = len(failed_job_ids)
+        
+        # Get completed jobs (last 100)
+        finished_registry = FinishedJobRegistry(queue=queue)
+        finished_job_ids = finished_registry.get_job_ids()
+        finished_jobs = len(finished_job_ids)
+        
+        # Get job details
+        job_details = []
+        for job_id in queued_job_ids + started_job_ids + failed_job_ids + finished_job_ids[:20]:
+            job = queue.fetch_job(job_id)
+            if job:
+                job_details.append({
+                    "id": job.id,
+                    "status": job.get_status(),
+                    "created_at": job.created_at.isoformat() if job.created_at else None,
+                    "enqueued_at": job.enqueued_at.isoformat() if job.enqueued_at else None,
+                    "started_at": job.started_at.isoformat() if job.started_at else None,
+                    "ended_at": job.ended_at.isoformat() if job.ended_at else None,
+                    "exc_info": job.exc_info if hasattr(job, 'exc_info') else None,
+                    "meta": job.meta
+                })
+        
+        return {
+            "redis_connected": redis_connected,
+            "queue_stats": {
+                "queued": queued_jobs,
+                "started": started_jobs,
+                "failed": failed_jobs,
+                "finished": finished_jobs
+            },
+            "job_details": job_details
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error getting Redis status: {str(e)}"
+        )
