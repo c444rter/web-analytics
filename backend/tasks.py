@@ -3,8 +3,20 @@
 import os
 import tempfile
 import traceback
+import time
 from core.orders_processing import process_shopify_file
 from core.supabase_client import download_file_from_storage, BUCKET_NAME
+
+def process_test_task(test_data: str):
+    """
+    A simple test task for CI/CD pipeline worker testing.
+    This function simply logs the test data and returns it.
+    """
+    print(f"Processing test task with data: {test_data}")
+    # Simulate some work
+    time.sleep(2)
+    print(f"Test task completed for data: {test_data}")
+    return test_data
 
 def process_shopify_file_task(storage_path: str, user_id: int, upload_id: int):
     """
