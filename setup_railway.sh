@@ -96,10 +96,15 @@ if [[ $set_vars == "y" || $set_vars == "Y" ]]; then
     read -r supabase_url
     railway vars set SUPABASE_URL="$supabase_url"
     
-    # Get Supabase key
+    # Get Supabase anon key
     echo -e "${YELLOW}Enter your Supabase anon key:${NC}"
     read -r supabase_key
     railway vars set SUPABASE_KEY="$supabase_key"
+    
+    # Get Supabase service role key
+    echo -e "${YELLOW}Enter your Supabase service role key:${NC}"
+    read -r supabase_service_role_key
+    railway vars set SUPABASE_SERVICE_ROLE_KEY="$supabase_service_role_key"
     
     # Set bucket name
     railway vars set BUCKET_NAME="uploads"

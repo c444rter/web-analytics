@@ -12,6 +12,7 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    user_id: Optional[int] = None  # Add user_id field for NextAuth
 
 
 # User Schemas

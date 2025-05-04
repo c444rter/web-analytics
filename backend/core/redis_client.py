@@ -4,9 +4,14 @@ import json
 import redis
 from datetime import timedelta
 from urllib.parse import urlparse
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Try to use REDIS_PUBLIC_URL first, fall back to individual parameters
 redis_url = os.getenv("REDIS_PUBLIC_URL")
+print(f"Redis URL: {redis_url}")
 if redis_url:
     # Parse the Redis URL to get connection details
     parsed_url = urlparse(redis_url)

@@ -24,12 +24,13 @@ def get_user(db: Session, user_id: int):
     return db.query(models.User).filter(models.User.id == user_id).first()
 
 # Upload CRUD
-def create_upload(db: Session, upload: schemas.UploadCreate, file_path: str, file_size: int, user_id: int):
+def create_upload(db: Session, upload: schemas.UploadCreate, file_path: str, file_size: int, user_id: int, status: str = "pending"):
     db_upload = models.Upload(
         user_id=user_id,
         file_name=upload.file_name,
         file_path=file_path,
-        file_size=file_size
+        file_size=file_size,
+        status=status
     )
     db.add(db_upload)
     db.commit()

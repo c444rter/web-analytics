@@ -13,6 +13,7 @@ COPY . /app
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
+ENV OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 # Since the working directory is now /app/backend,
 # use "main:app" (not "backend.main:app") for Uvicorn.

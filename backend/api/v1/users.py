@@ -16,7 +16,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/json-token", response_model=schemas.Token, summary="User Login (JSON)")
+@router.post("/json-token", summary="User Login (JSON)")
 async def json_login(user_data: schemas.UserLogin, db: Session = Depends(get_db)):
     # Get the user by email
     user = crud.get_user_by_email(db, email=user_data.email)
@@ -29,7 +29,12 @@ async def json_login(user_data: schemas.UserLogin, db: Session = Depends(get_db)
         )
     # Create the access token
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
+    # Return token with user_id for NextAuth
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer",
+        "user_id": user.id  # Add user_id to the response
+    }
 
 @router.post("/signup", response_model=schemas.UserOut, summary="User Sign-Up")
 def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):

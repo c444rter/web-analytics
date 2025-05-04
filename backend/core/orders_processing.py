@@ -49,6 +49,18 @@ def read_order_file(file_path: str) -> pd.DataFrame:
     Reads a CSV or other supported file and returns a DataFrame.
     Adjust for Excel/JSON if needed.
     """
+    # Try to detect the file type by reading the first few lines
+    try:
+        with open(file_path, 'r') as f:
+            first_line = f.readline().strip()
+            # Check if the first line looks like a CSV header
+            if ',' in first_line and 'Name' in first_line and 'Email' in first_line:
+                print(f"Detected CSV file format for {file_path}")
+                return pd.read_csv(file_path, low_memory=False)
+    except Exception as e:
+        print(f"Error detecting file type: {e}")
+    
+    # Fall back to extension-based detection
     if file_path.lower().endswith(".csv"):
         return pd.read_csv(file_path, low_memory=False)
     # elif file_path.lower().endswith((".xls", ".xlsx")):

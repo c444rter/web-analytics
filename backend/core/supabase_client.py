@@ -29,8 +29,26 @@ def get_upload_signed_url(file_path, expires_in=60):
         expires_in: The expiration time in seconds (default: 60 seconds)
     
     Returns:
-        str: The signed URL for uploading
+        str: The signed URL for uploading or direct upload URL if signed URL fails
     """
+    # First, check if the bucket exists
+    try:
+        # Try to get bucket info to verify it exists
+        bucket_info_url = f"{SUPABASE_URL}/storage/v1/bucket/{BUCKET_NAME}"
+        bucket_response = requests.get(
+            bucket_info_url,
+            headers=admin_headers
+        )
+        
+        if bucket_response.status_code != 200:
+            print(f"Warning: Bucket '{BUCKET_NAME}' may not exist or is not accessible. Status: {bucket_response.status_code}")
+            print(f"Response: {bucket_response.text}")
+            # Continue anyway, as we'll try direct upload as fallback
+    except Exception as e:
+        print(f"Error checking bucket existence: {str(e)}")
+        # Continue anyway, as we'll try direct upload as fallback
+    
+    # Try to generate a signed URL
     try:
         # Construct the signed URL endpoint
         signed_url_endpoint = f"{SUPABASE_URL}/storage/v1/object/sign/{BUCKET_NAME}/{file_path}"
@@ -44,17 +62,24 @@ def get_upload_signed_url(file_path, expires_in=60):
         )
         
         # Check if the request was successful
-        if response.status_code != 200:
-            raise Exception(f"Failed to generate signed URL: {response.text}")
+        if response.status_code == 200:
+            # Return the signed URL
+            result = response.json()
+            if "signedURL" in result:
+                print(f"Successfully generated signed URL for {file_path}")
+                return result["signedURL"]
+            else:
+                print("Warning: No signedURL in response, falling back to direct upload")
+        else:
+            print(f"Warning: Failed to generate signed URL: {response.status_code} - {response.text}")
+            print("Falling back to direct upload URL")
         
-        # Return the signed URL
-        result = response.json()
-        if "signedURL" not in result:
-            raise Exception("No signed URL in response")
-            
-        return result["signedURL"]
+        # If we get here, the signed URL generation failed, so return a direct upload URL
+        return f"{SUPABASE_URL}/storage/v1/object/{BUCKET_NAME}/{file_path}"
     except Exception as e:
-        raise Exception(f"Supabase signed URL error: {str(e)}")
+        print(f"Error in get_upload_signed_url: {str(e)}")
+        # Return a direct upload URL as fallback
+        return f"{SUPABASE_URL}/storage/v1/object/{BUCKET_NAME}/{file_path}"
 
 def upload_file_to_storage(file_content, file_path, use_admin=False):
     """Upload a file to Supabase Storage using REST API
@@ -65,13 +90,32 @@ def upload_file_to_storage(file_content, file_path, use_admin=False):
         use_admin: Whether to use admin permissions (service role key)
     """
     try:
-        # Construct the upload URL
+        # Always use admin headers for uploads from the backend
+        request_headers = admin_headers
+        
+        # First try using PUT method (direct upload)
         upload_url = f"{SUPABASE_URL}/storage/v1/object/{BUCKET_NAME}/{file_path}"
         
-        # Choose headers based on permission level needed
-        request_headers = admin_headers if use_admin else headers
+        print(f"Attempting to upload file to {upload_url}")
         
-        # Upload the file
+        # Upload the file using PUT
+        response = requests.put(
+            upload_url,
+            headers=request_headers,
+            data=file_content
+        )
+        
+        # Check if the upload was successful
+        if response.status_code in (200, 201, 204):
+            print(f"Successfully uploaded file to {file_path} using PUT")
+            # Generate a URL path for the file
+            file_url = f"supabase://{BUCKET_NAME}/{file_path}"
+            return file_url
+        
+        # If PUT failed, try POST method
+        print(f"PUT upload failed with status {response.status_code}: {response.text}")
+        print("Trying POST method instead")
+        
         response = requests.post(
             upload_url,
             headers=request_headers,
@@ -79,13 +123,15 @@ def upload_file_to_storage(file_content, file_path, use_admin=False):
         )
         
         # Check if the upload was successful
-        if response.status_code not in (200, 201):
+        if response.status_code in (200, 201, 204):
+            print(f"Successfully uploaded file to {file_path} using POST")
+            # Generate a URL path for the file
+            file_url = f"supabase://{BUCKET_NAME}/{file_path}"
+            return file_url
+        else:
             raise Exception(f"Upload failed with status {response.status_code}: {response.text}")
-        
-        # Generate a URL path for the file
-        file_url = f"supabase://{BUCKET_NAME}/{file_path}"
-        return file_url
     except Exception as e:
+        print(f"Supabase upload error: {str(e)}")
         raise Exception(f"Supabase upload error: {str(e)}")
 
 def download_file_from_storage(file_path, local_path, use_admin=False):

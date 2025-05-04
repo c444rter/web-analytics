@@ -16,12 +16,16 @@ instance/
 *.env
 .env.local
 .env.*.local
+.env.production
+.env.vercel.production
 backend/.env
 backend/.env.*
 backend/.env.local
+backend/.env.production
 frontend/.env
 frontend/.env.*
 frontend/.env.local
+frontend/.env.production
 *.egg-info/
 
 # Data and uploads
@@ -76,3 +80,9 @@ create_bucket_policy.py
 create_bucket_with_service_role.py
 list_buckets.py
 check_db_connection.py
+
+# Production deployment files with sensitive information
+.vercel
+.railway
+.railway.toml
+.railway.json

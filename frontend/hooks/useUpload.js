@@ -5,7 +5,9 @@ import api from "../lib/api";  // Updated import path
 // Function to handle the file upload process.
 const uploadFile = async (formData) => {
   try {
-    const response = await api.post("/uploads/", formData, {
+    // Use the direct URL to the backend uploads endpoint
+    const uploadsUrl = process.env.NEXT_PUBLIC_UPLOADS_URL || "/uploads/";
+    const response = await api.post(uploadsUrl, formData, {
       headers: { "Content-Type": "multipart/form-data" },
       // Add timeout specifically for uploads which can take longer
       timeout: 60000, // 60 seconds

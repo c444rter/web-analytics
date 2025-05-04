@@ -34,6 +34,11 @@ const nextConfig = {
       },
     ];
   },
+  
+  // Increase the response timeout for large file uploads
+  serverRuntimeConfig: {
+    responseTimeout: 60000, // 60 seconds
+  },
 };
 
 module.exports = nextConfig;

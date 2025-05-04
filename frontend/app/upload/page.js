@@ -60,87 +60,120 @@ export default function UploadPage() {
 
   // Poll job progress using the DB upload_id
   const pollJobStatus = (uploadIdToPoll, interval = 3000) => {
+    console.log(`Starting to poll job status for upload ID: ${uploadIdToPoll}`);
+    
+    // Store the interval ID in a ref so we can clear it later
     const intervalId = setInterval(async () => {
       try {
+        console.log(`Polling status for upload ID: ${uploadIdToPoll}`);
         const { data } = await api.get(`/uploads/status/${uploadIdToPoll}`);
+        console.log("Status response:", data);
+        
         const newStatus = data.status || "unknown";
         const newPercent = data.percent || 0;
+        const statusMessage = data.message || `Status: ${newStatus}`;
+        
         setJobStatus(newStatus);
         setProgress(newPercent);
 
-        if (newStatus === "processing") {
-          setSnackbar({
-            open: true,
-            message: `Processing: ${newPercent}% complete`,
-            severity: "info"
-          });
-        } else if (newStatus === "completed") {
+        // Always keep the snackbar open during processing
+        setSnackbar({
+          open: true,
+          message: statusMessage,
+          severity: newStatus === "completed" ? "success" : 
+                   newStatus === "failed" ? "error" : "info"
+        });
+
+        if (newStatus === "completed") {
+          console.log("Processing completed successfully");
           clearInterval(intervalId);
-          setSnackbar({
-            open: true,
-            message: "Upload processed successfully!",
-            severity: "success"
-          });
           if (data.upload_id) setUploadId(data.upload_id);
           setTimeout(() => {
             setKpiDialogOpen(true);
           }, 500);
         } else if (newStatus === "failed") {
+          console.log("Processing failed");
           clearInterval(intervalId);
-          setSnackbar({
-            open: true,
-            message: "Processing failed.",
-            severity: "error"
-          });
-        } else {
-          setSnackbar({
-            open: true,
-            message: `Status: ${newStatus}. ${newPercent}% complete`,
-            severity: "info"
-          });
         }
       } catch (err) {
-        clearInterval(intervalId);
+        console.error("Error polling job status:", err);
+        // Don't clear the interval on error, just show an error message
+        // and continue polling
         setSnackbar({
           open: true,
-          message: "Error checking job status.",
-          severity: "error"
+          message: "Error checking job status. Will retry...",
+          severity: "warning"
         });
       }
     }, interval);
+    
+    // Return the interval ID so it can be cleared if needed
+    return intervalId;
   };
 
   const handleUpload = async () => {
     if (!selectedFile) return;
+    
+    // Show initial loading state
+    setSnackbar({
+      open: true,
+      message: "Uploading file...",
+      severity: "info"
+    });
+    
     const formData = new FormData();
     formData.append("file", selectedFile);
     formData.append("file_name", selectedFile.name);
+    
     try {
+      console.log("Starting file upload");
       const data = await mutateAsync(formData);
+      console.log("Upload response:", data);
+      
       dispatch(
         setLastUpload({
           timestamp: new Date().toISOString(),
           fileName: selectedFile.name
         })
       );
+      
+      // Show upload success message
       setSnackbar({
         open: true,
-        message: "File uploaded! Processing started...",
+        message: data.message || "File uploaded! Processing started...",
         severity: "info"
       });
+      
       // Ensure we get a valid DB upload_id from the response
       if (data.upload_id) {
         setUploadId(data.upload_id);
+        console.log(`Starting polling for upload_id: ${data.upload_id}`);
         // Start polling using the DB upload id (not the Redis job id)
         pollJobStatus(data.upload_id);
       } else {
         console.error("upload_id is missing in response:", data);
+        setSnackbar({
+          open: true,
+          message: "Upload succeeded but tracking ID is missing. Processing status may not be available.",
+          severity: "warning"
+        });
       }
     } catch (err) {
       console.error("Upload error:", err);
+      
+      // Get a user-friendly error message
+      let errorMessage = "Error uploading file.";
+      if (err.isUploadError) {
+        // Use the custom error message from our hook
+        errorMessage = err.message;
+      } else if (err.response?.data?.detail) {
+        // Use the error detail from the API
+        errorMessage = `Upload error: ${err.response.data.detail}`;
+      }
+      
       setSnackbar({
         open: true,
-        message: "Error uploading file.",
+        message: errorMessage,
         severity: "error"
       });
     }
@@ -351,12 +384,23 @@ export default function UploadPage() {
           sx={{ 
             width: "100%",
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            borderRadius: 2
+            borderRadius: 2,
+            backgroundColor: snackbar.severity === 'success' 
+              ? theme.palette.success.main 
+              : snackbar.severity === 'error'
+                ? theme.palette.error.main
+                : snackbar.severity === 'warning'
+                  ? theme.palette.warning.main
+                  : theme.palette.secondary.main,
+            color: snackbar.severity === 'warning' ? '#000' : '#fff',
+            '& .MuiAlert-icon': {
+              color: snackbar.severity === 'warning' ? '#000' : '#fff'
+            }
           }} 
           icon={snackbar.severity === 'success' ? <CheckCircleIcon /> : false}
         >
           <Box>
-            <Typography variant="body2">{snackbar.message}</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 'medium' }}>{snackbar.message}</Typography>
             {jobStatus === "processing" && (
               <Box sx={{ mt: 1 }}>
                 <LinearProgress 
@@ -365,13 +409,13 @@ export default function UploadPage() {
                   sx={{ 
                     height: 8, 
                     borderRadius: 1,
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
                     '& .MuiLinearProgress-bar': {
-                      backgroundColor: theme.palette.secondary.main
+                      backgroundColor: snackbar.severity === 'warning' ? '#000' : '#fff'
                     }
                   }} 
                 />
-                <Typography variant="caption" display="block" textAlign="right">
+                <Typography variant="caption" display="block" textAlign="right" sx={{ mt: 0.5, fontWeight: 'bold' }}>
                   {progress}%
                 </Typography>
               </Box>
