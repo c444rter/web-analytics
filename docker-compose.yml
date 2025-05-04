@@ -37,19 +37,20 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    command: rq worker --with-scheduler --url redis://redis:6379/0 --name worker-local --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0
+    command: rq worker --with-scheduler --url redis://default:WmfTavIVEnHSxGgrjKDPkIWuFwGeDjwp@interchange.proxy.rlwy.net:35531 --name worker-local --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/my_davids
       SECRET_KEY: "YOUR_SECRET_KEY"
-      REDIS_HOST: redis
-      REDIS_PORT: "6379"
+      REDIS_HOST: interchange.proxy.rlwy.net
+      REDIS_PORT: "35531"
       REDIS_DB: "0"
+      REDIS_PASSWORD: "WmfTavIVEnHSxGgrjKDPkIWuFwGeDjwp"
+      REDIS_USERNAME: "default"
       OBJC_DISABLE_INITIALIZE_FORK_SAFETY: "YES"
     volumes:
       - ./uploads:/app/uploads    # <-- Share uploads
     depends_on:
       - db
-      - redis
 
 volumes:
   postgres_data:

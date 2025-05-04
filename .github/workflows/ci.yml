@@ -305,7 +305,14 @@ jobs:
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
+        # Deploy all services
         railway up --detach
+        
+        # Wait for deployment to complete
+        sleep 30
+        
+        # Explicitly redeploy the worker service to ensure it's updated
+        railway service restart worker
 
   deploy-vercel:
     needs: build-and-push

@@ -8,9 +8,8 @@ from typing import Optional, Dict, Any, List
 from db import models, schemas
 from core.deps import get_current_user, get_db
 from core.redis_client import cache_get, cache_set, generate_cache_key, redis_client
-from rq import Queue
+from rq import Queue, FailedQueue
 from rq.registry import StartedJobRegistry, FinishedJobRegistry
-from rq.queue import FailedQueue
 
 router = APIRouter(tags=["dashboard"])
 
