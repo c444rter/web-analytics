@@ -61,6 +61,9 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        # Skip creating tables that already exist
+        render_as_batch=True,
+        compare_type=True
     )
 
     with context.begin_transaction():
@@ -85,8 +88,18 @@ def run_migrations_online() -> None:
         )
 
     with connectable.connect() as connection:
+        # Check if the tables already exist
+        from sqlalchemy import inspect
+        inspector = inspect(connection)
+        tables = inspector.get_table_names()
+        
+        # Configure Alembic context
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, 
+            target_metadata=target_metadata,
+            # Skip creating tables that already exist
+            render_as_batch=True,
+            compare_type=True
         )
 
         with context.begin_transaction():
