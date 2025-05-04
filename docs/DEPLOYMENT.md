@@ -100,42 +100,65 @@ The application is deployed using the following services:
 3. Railway will automatically provision a Redis instance
 4. Wait for it to complete
 
-### Set Up Worker Service
+### Using Procfile for Multi-Service Deployment
 
-The worker service is automatically configured in the railway.toml file, which includes settings for both the API service and the worker service. However, you'll still need to manually create the worker service in Railway:
+The application uses a Procfile to define multiple services that run from the same codebase. This simplifies deployment and ensures consistency across environments.
+
+#### Procfile Structure
+
+The Procfile in the project root defines three services:
+
+```
+web: cd backend && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+worker: cd backend && rq worker --with-scheduler --url ${REDIS_PUBLIC_URL} --name worker-${RAILWAY_SERVICE_ID:-local} --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0
+release: cd backend && alembic upgrade head
+```
+
+- **web**: The main FastAPI application
+- **worker**: The Redis Queue worker for background processing
+- **release**: Database migrations (runs automatically during deployment)
+
+#### Set Up Web API Service
+
+1. In your project dashboard, click "New"
+2. Select "GitHub Repo"
+3. Select your web-analytics repository
+4. Wait for the initial deployment to complete
+5. Go to the "Variables" tab and add the environment variables listed earlier
+6. Go to the "Settings" tab
+7. Under "Start Command", enter: `web` (this tells Railway to use the web command from the Procfile)
+8. Click "Deploy" to apply changes
+
+#### Set Up Worker Service
 
 1. In your project dashboard, click "New"
 2. Select "GitHub Repo"
 3. Select the same repository
-4. **Important**: Railway will automatically use the worker configuration from railway.toml
-   - The configuration specifies the same Dockerfile as the API service
-   - The start command is set to `rq worker --with-scheduler`
-5. Click "Deploy"
-6. Wait for the initial deployment to complete
-7. Go to the "Variables" tab
-8. Click "Reference variables from another service"
-9. Select your API service to copy all variables
-10. Click "Add References"
+4. Wait for the initial deployment to complete
+5. Go to the "Variables" tab
+6. Click "Reference variables from another service"
+7. Select your API service to copy all variables
+8. Click "Add References"
+9. Go to the "Settings" tab
+10. Under "Start Command", enter: `worker` (this tells Railway to use the worker command from the Procfile)
 11. Click "Deploy" to apply changes
 
-### Run Database Migrations
+#### Database Migrations
 
-1. In your project dashboard, click "New"
-2. Select "GitHub Repo"
-3. Select the same repository
-4. Set the root directory to the project root (where alembic.ini is located)
-5. Click "Deploy"
-6. Wait for the initial deployment to complete
-7. Go to the "Variables" tab
-8. Click "Reference variables from another service"
-9. Select your API service to copy all variables
-10. Click "Add References"
-11. Go to the "Settings" tab
-12. Under "Start Command", enter: `alembic upgrade head`
-13. Click "Deploy" to apply changes
-14. Wait for the deployment to complete
-15. Check the logs to ensure migrations ran successfully
-16. Once migrations are complete, delete this service
+With the Procfile approach, database migrations are automatically handled during deployment:
+
+1. Railway runs the `release` command from the Procfile before starting the service
+2. This command runs `alembic upgrade head` to apply any pending migrations
+3. No need to create a separate service for migrations
+
+You can also manually run migrations if needed:
+
+1. In your project dashboard, click on your API service
+2. Go to the "Settings" tab
+3. Under "Start Command", temporarily change it to: `release`
+4. Click "Deploy" to apply changes
+5. Wait for the deployment to complete and check the logs
+6. Change the start command back to `web` and deploy again
 
 ### Get Your API URL
 

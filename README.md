@@ -157,6 +157,8 @@ Key features include:
 
 #### Railway Setup (Backend)
 
+The application uses a Procfile to define multiple services that run from the same codebase:
+
 1. Create a new project on Railway
 2. Connect your GitHub repository
 3. Configure the following environment variables:
@@ -166,10 +168,20 @@ Key features include:
    - `SUPABASE_URL`: Your Supabase project URL
    - `SUPABASE_KEY`: Your Supabase anon key
    - `BUCKET_NAME`: "uploads"
-4. Set the root directory to `/backend`
-5. Set the start command to `uvicorn main:app --host 0.0.0.0 --port $PORT`
-6. Deploy the API service
-7. Add a second service for the worker with the start command `rq worker --with-scheduler`
+   - `REDIS_PUBLIC_URL`: Your Redis connection URL
+   - `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB`: Redis connection details
+   - `REDIS_PASSWORD`, `REDIS_USER`: Redis authentication (if required)
+4. Deploy the following services:
+   - **Web API Service**: Set the start command to `web` (uses the web command from Procfile)
+   - **Worker Service**: Set the start command to `worker` (uses the worker command from Procfile)
+   - **Database Migrations**: Automatically run during deployment with the `release` command
+
+The Procfile defines these services as:
+```
+web: cd backend && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+worker: cd backend && rq worker --with-scheduler --url ${REDIS_PUBLIC_URL} --name worker-${RAILWAY_SERVICE_ID:-local} --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0
+release: cd backend && alembic upgrade head
+```
 
 #### Vercel Setup (Frontend)
 

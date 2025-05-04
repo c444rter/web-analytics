@@ -166,16 +166,40 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    A[Client Browser (Next.js/React)] -- HTTP Requests --> B[FastAPI Backend]
-    B -- CRUD Operations --> C[(PostgreSQL)]
-    B -- Background Processing --> D[(Redis/RQ)]
+    A[Client Browser (Next.js/React)] -- HTTP Requests --> B[FastAPI Backend API]
+    A -- HTTP Requests --> F[Vercel Frontend]
+    B -- CRUD Operations --> C[(PostgreSQL/Supabase)]
+    B -- Background Tasks --> D[(Redis)]
+    G[Worker Service] -- Processes Jobs --> D
+    G -- CRUD Operations --> C
     B -- ML Projections --> E[ML Module]
-    subgraph Local Hosting
+    
+    subgraph Railway
       B
-      C
+      G
       D
-      E
     end
+    
+    subgraph Supabase
+      C
+    end
+    
+    subgraph Vercel
+      F
+    end
+```
+
+The deployment architecture uses a Procfile to define multiple services that run from the same codebase:
+
+- **Web API Service**: Handles HTTP requests, file uploads, and analytics
+- **Worker Service**: Processes background jobs from the Redis queue
+- **Database Migrations**: Automatically run during deployment
+
+The Procfile defines these services as:
+```
+web: cd backend && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+worker: cd backend && rq worker --with-scheduler --url ${REDIS_PUBLIC_URL} --name worker-${RAILWAY_SERVICE_ID:-local} --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0
+release: cd backend && alembic upgrade head
 ```
 
 ---
