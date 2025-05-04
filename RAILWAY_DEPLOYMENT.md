@@ -32,7 +32,7 @@ You need to set up three services in Railway:
      - Set "Custom Start Command" to `web`
      - Add a "Pre-deploy step":
        ```
-       cd /app && PYTHONPATH=. alembic upgrade head
+       cd /app && PYTHONPATH=. alembic upgrade head --sql | grep -v "CREATE TABLE" | psql $DATABASE_URL
        ```
 
 3. **Worker Service**:
@@ -49,7 +49,7 @@ You need to set up three services in Railway:
      - Set "Custom Start Command" to `worker`
      - Add a "Pre-deploy step":
        ```
-       cd /app && PYTHONPATH=. alembic upgrade head
+       cd /app && PYTHONPATH=. alembic upgrade head --sql | grep -v "CREATE TABLE" | psql $DATABASE_URL
        ```
 
 ### 2. Environment Variables
@@ -69,7 +69,7 @@ The application uses two key files for deployment:
    ```
    web: cd backend && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
    worker: cd backend && rq worker --with-scheduler --url ${REDIS_PUBLIC_URL} --name worker-${RAILWAY_SERVICE_ID:-local} --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0
-   release: cd /app && PYTHONPATH=. alembic upgrade head
+   release: cd /app && PYTHONPATH=. alembic upgrade head --sql | grep -v "CREATE TABLE" | psql $DATABASE_URL
    ```
 
 2. **Dockerfile**: Defines how to build the application:
@@ -87,13 +87,17 @@ The application uses two key files for deployment:
 
 ### 4. Why This Configuration Works
 
-This configuration solves the migration issue by:
+This configuration solves the migration issues by:
 
 1. **Custom Build Command**: Overrides Railway's default build process, preventing it from trying to run migrations during the build phase
 2. **Pre-deploy Step**: Runs migrations from the correct directory with the correct Python path
-3. **Start Command**: Uses your Procfile to start the service
+3. **SQL Filtering**: Uses `--sql | grep -v "CREATE TABLE" | psql $DATABASE_URL` to filter out CREATE TABLE statements, preventing errors when tables already exist
+4. **Start Command**: Uses your Procfile to start the service
 
-The key insight is that Railway was trying to run migrations during the build phase, but couldn't find the alembic.ini file because it was looking in the wrong directory. By explicitly defining the build and deploy steps, we ensure migrations run at the right time and from the right location.
+The key insights are:
+1. Railway was trying to run migrations during the build phase, but couldn't find the alembic.ini file because it was looking in the wrong directory
+2. Even with the correct path, migrations would fail when tables already exist from previous deployments
+3. By generating SQL and filtering out CREATE TABLE statements, we ensure migrations run smoothly even with existing tables
 
 ### 5. Troubleshooting
 
