@@ -8,8 +8,9 @@ from typing import Optional, Dict, Any, List
 from db import models, schemas
 from core.deps import get_current_user, get_db
 from core.redis_client import cache_get, cache_set, generate_cache_key, redis_client
-from rq import Queue, FailedQueue
+from rq import Queue
 from rq.registry import StartedJobRegistry, FinishedJobRegistry
+from rq.job import Job
 
 router = APIRouter(tags=["dashboard"])
 
@@ -98,9 +99,11 @@ def get_redis_status(current_user: models.User = Depends(get_current_user)):
         started_job_ids = registry.get_job_ids()
         
         # Get failed jobs
-        failed_queue = FailedQueue(connection=redis_client)
-        failed_job_ids = failed_queue.job_ids
-        failed_jobs = len(failed_job_ids)
+        failed_job_ids = Job.fetch_many(
+            redis_client.smembers('rq:failed'),
+            connection=redis_client
+        )
+        failed_jobs = len(failed_job_ids) if failed_job_ids else 0
         
         # Get completed jobs (last 100)
         finished_registry = FinishedJobRegistry(queue=queue)
