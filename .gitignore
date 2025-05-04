@@ -84,5 +84,6 @@ check_db_connection.py
 # Production deployment files with sensitive information
 .vercel
 .railway
-.railway.toml
 .railway.json
+# Allow Railway configuration files
+# .railway.toml

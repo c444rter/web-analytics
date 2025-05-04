@@ -15,6 +15,9 @@ COPY . /app
 ENV PYTHONUNBUFFERED=1
 ENV OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
+# Note: We do NOT run migrations here
+# Migrations are handled by the Procfile's release command
+
 # Since the working directory is now /app/backend,
 # use "main:app" (not "backend.main:app") for Uvicorn.
 # Use a hardcoded port for Railway
