@@ -20,15 +20,21 @@ You need to set up three services in Railway:
 
 2. **Web API Service (mydavids)**:
    - Connect to your GitHub repository
-   - Set the root directory to `/` (project root)
-   - Set the start command to `web`
-   - Enable "Use Procfile" option if available
+   - In the **Source** section:
+     - Set the "Root Directory" to `/` (project root)
+   - In the **Build** section:
+     - Ensure "Builder" is set to use the Dockerfile (backend/Dockerfile)
+   - In the **Deploy** section:
+     - Set "Custom Start Command" to `web`
 
 3. **Worker Service**:
    - Connect to the same GitHub repository
-   - Set the root directory to `/` (project root)
-   - Set the start command to `worker`
-   - Enable "Use Procfile" option if available
+   - In the **Source** section:
+     - Set the "Root Directory" to `/` (project root)
+   - In the **Build** section:
+     - Ensure "Builder" is set to use the Dockerfile (backend/Dockerfile)
+   - In the **Deploy** section:
+     - Set "Custom Start Command" to `worker`
 
 ### 2. Environment Variables
 
@@ -71,13 +77,27 @@ When you deploy to Railway:
 3. The release command runs database migrations
 4. Railway then starts the service using the appropriate command from the Procfile
 
-### 5. Troubleshooting
+### 5. Important Build Settings
+
+To prevent migration errors during the build phase:
+
+1. In the **Build** section:
+   - If you see a "Custom Build Command" option, leave it empty or do not add one
+   - This prevents Railway from running custom build commands that might interfere with the migration process
+
+2. If you're still seeing migration errors:
+   - Check if there's a `railway.toml` file in your repository that might be defining a custom build command
+   - If found, either remove it or ensure it doesn't include migration commands
+
+### 6. Troubleshooting
 
 If you encounter issues with migrations:
 
 1. Make sure the `alembic.ini` file is in the root directory
 2. Ensure the `PYTHONPATH=..` is included in the release command
 3. Check that the migrations are not being run during the build phase
+4. Look at the build logs to see exactly where the error is occurring
+5. If you see an error like `FAILED: No config file 'alembic.ini' found`, it means the build process is trying to run migrations but can't find the configuration file
 
 ## Notes
 
