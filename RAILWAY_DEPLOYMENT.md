@@ -23,18 +23,34 @@ You need to set up three services in Railway:
    - In the **Source** section:
      - Set the "Root Directory" to `/` (project root)
    - In the **Build** section:
-     - Ensure "Builder" is set to use the Dockerfile (backend/Dockerfile)
+     - Set "Builder" to **Nixpacks**
+     - Add a "Custom Build Command":
+       ```
+       pip install -r requirements.txt
+       ```
    - In the **Deploy** section:
      - Set "Custom Start Command" to `web`
+     - Add a "Pre-deploy step":
+       ```
+       cd /app && PYTHONPATH=. alembic upgrade head
+       ```
 
 3. **Worker Service**:
    - Connect to the same GitHub repository
    - In the **Source** section:
      - Set the "Root Directory" to `/` (project root)
    - In the **Build** section:
-     - Ensure "Builder" is set to use the Dockerfile (backend/Dockerfile)
+     - Set "Builder" to **Nixpacks**
+     - Add a "Custom Build Command":
+       ```
+       pip install -r requirements.txt
+       ```
    - In the **Deploy** section:
      - Set "Custom Start Command" to `worker`
+     - Add a "Pre-deploy step":
+       ```
+       cd /app && PYTHONPATH=. alembic upgrade head
+       ```
 
 ### 2. Environment Variables
 
@@ -65,42 +81,31 @@ The application uses two key files for deployment:
    COPY . /app
    ENV PYTHONUNBUFFERED=1
    ENV OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+   # IMPORTANT: Do NOT run migrations here
    CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
    ```
 
-### 4. Deployment Process
+### 4. Why This Configuration Works
 
-When you deploy to Railway:
+This configuration solves the migration issue by:
 
-1. Railway uses the Dockerfile to build the application
-2. Before starting the service, Railway runs the `release` command from the Procfile
-3. The release command runs database migrations
-4. Railway then starts the service using the appropriate command from the Procfile
+1. **Custom Build Command**: Overrides Railway's default build process, preventing it from trying to run migrations during the build phase
+2. **Pre-deploy Step**: Runs migrations from the correct directory with the correct Python path
+3. **Start Command**: Uses your Procfile to start the service
 
-### 5. Important Build Settings
+The key insight is that Railway was trying to run migrations during the build phase, but couldn't find the alembic.ini file because it was looking in the wrong directory. By explicitly defining the build and deploy steps, we ensure migrations run at the right time and from the right location.
 
-To prevent migration errors during the build phase:
+### 5. Troubleshooting
 
-1. In the **Build** section:
-   - If you see a "Custom Build Command" option, leave it empty or do not add one
-   - This prevents Railway from running custom build commands that might interfere with the migration process
+If you still encounter issues:
 
-2. If you're still seeing migration errors:
-   - Check if there's a `railway.toml` file in your repository that might be defining a custom build command
-   - If found, either remove it or ensure it doesn't include migration commands
-
-### 6. Troubleshooting
-
-If you encounter issues with migrations:
-
-1. Make sure the `alembic.ini` file is in the root directory
-2. Ensure the `PYTHONPATH=..` is included in the release command
-3. Check that the migrations are not being run during the build phase
-4. Look at the build logs to see exactly where the error is occurring
-5. If you see an error like `FAILED: No config file 'alembic.ini' found`, it means the build process is trying to run migrations but can't find the configuration file
+1. Check the build logs to see exactly where the error is occurring
+2. Ensure the alembic.ini file is in the root directory
+3. Verify that both services have identical build and pre-deploy configurations
+4. Make sure there are no Railway configuration files in your repository (like railway.toml)
 
 ## Notes
 
-- The `release` command runs before both the web and worker services start
-- Both services use the same Docker image but different start commands
+- Both services should use the same build configuration but different start commands
+- The pre-deploy step runs before both the web and worker services start
 - Railway automatically handles scaling and restarts
