@@ -74,8 +74,10 @@ The application uses three key files for deployment:
      "pip install -r requirements.txt"
    ]
 
+   # Use the Procfile for starting the service
    [start]
-   cmd = "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
+   cmd = ""
+   procfile = true
    ```
 
 3. **Dockerfile**: Defines how to build the application:
