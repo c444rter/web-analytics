@@ -3,6 +3,9 @@ cmds = [
   "pip install -r requirements.txt"
 ]
 
-# Directly specify the start command
+[phases.setup]
+nixPkgs = ["python3", "postgresql_16.dev", "gcc"]
+
+# Directly specify the start command to run the create_tables.py script first, then start the app
 [start]
-cmd = "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
+cmd = "cd backend && python create_tables.py && uvicorn main:app --host 0.0.0.0 --port $PORT"
