@@ -63,7 +63,7 @@ Make sure to set these environment variables in both the Web API and Worker serv
 
 ### 3. Deployment Configuration
 
-The application uses two key files for deployment:
+The application uses three key files for deployment:
 
 1. **Procfile**: Defines the commands to run for each service:
    ```
@@ -72,7 +72,18 @@ The application uses two key files for deployment:
    release: cd /app && PYTHONPATH=. alembic stamp head && PYTHONPATH=. alembic upgrade head
    ```
 
-2. **Dockerfile**: Defines how to build the application:
+2. **nixpacks.toml**: Controls the build process for Railway's Nixpacks builder:
+   ```toml
+   [phases.build]
+   cmds = [
+     "pip install -r requirements.txt"
+   ]
+
+   [start]
+   cmd = "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
+   ```
+
+3. **Dockerfile**: Defines how to build the application:
    ```dockerfile
    FROM python:3.11-slim
    WORKDIR /app/backend
@@ -89,14 +100,14 @@ The application uses two key files for deployment:
 
 This configuration solves the migration issues by:
 
-1. **Custom Build Command**: Overrides Railway's default build process, preventing it from trying to run migrations during the build phase
+1. **Nixpacks Configuration**: The nixpacks.toml file explicitly defines the build and start commands, preventing Railway from automatically adding migration steps during the build phase
 2. **Pre-deploy Step**: Runs migrations from the correct directory with the correct Python path
 3. **Alembic Version Stamping**: Uses `alembic stamp head` to mark all migrations as already applied
 4. **Start Command**: Uses your Procfile to start the service
 
 The key insights are:
-1. Railway was trying to run migrations during the build phase, but couldn't find the alembic.ini file because it was looking in the wrong directory
-2. Even with the correct path, migrations would fail when tables already exist from previous deployments
+1. Railway was trying to run migrations during the build phase, which was causing errors
+2. The nixpacks.toml file gives us explicit control over the build process, preventing unwanted migration steps
 3. By using `alembic stamp head`, we tell Alembic that all migrations up to the latest have already been applied
 4. This is especially useful for first-time deployments where the database tables already exist but Alembic doesn't know about them
 
