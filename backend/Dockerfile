@@ -16,8 +16,8 @@ ENV PYTHONUNBUFFERED=1
 ENV OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 # IMPORTANT: Do NOT run migrations here
-# Migrations should be handled by Railway's pre-deploy step
-# or by the Procfile's release command
+# Migrations are completely bypassed for this deployment
+# since the database tables already exist
 
 # Since the working directory is now /app/backend,
 # use "main:app" (not "backend.main:app") for Uvicorn.

@@ -30,10 +30,7 @@ You need to set up three services in Railway:
        ```
    - In the **Deploy** section:
      - Set "Custom Start Command" to `web`
-     - Add a "Pre-deploy step":
-       ```
-       cd /app && PYTHONPATH=. alembic stamp head && PYTHONPATH=. alembic upgrade head
-       ```
+     - Remove any "Pre-deploy step" (migrations are bypassed)
 
 3. **Worker Service**:
    - Connect to the same GitHub repository
@@ -47,10 +44,7 @@ You need to set up three services in Railway:
        ```
    - In the **Deploy** section:
      - Set "Custom Start Command" to `worker`
-     - Add a "Pre-deploy step":
-       ```
-       cd /app && PYTHONPATH=. alembic stamp head && PYTHONPATH=. alembic upgrade head
-       ```
+     - Remove any "Pre-deploy step" (migrations are bypassed)
 
 ### 2. Environment Variables
 
@@ -69,7 +63,8 @@ The application uses three key files for deployment:
    ```
    web: cd backend && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
    worker: cd backend && rq worker --with-scheduler --url ${REDIS_PUBLIC_URL} --name worker-${RAILWAY_SERVICE_ID:-local} --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0
-   release: cd /app && PYTHONPATH=. alembic stamp head && PYTHONPATH=. alembic upgrade head
+   # Migrations are completely bypassed for this deployment since the database tables already exist
+   # release: cd /app && PYTHONPATH=. alembic stamp head && PYTHONPATH=. alembic upgrade head
    ```
 
 2. **nixpacks.toml**: Controls the build process for Railway's Nixpacks builder:
@@ -93,6 +88,8 @@ The application uses three key files for deployment:
    ENV PYTHONUNBUFFERED=1
    ENV OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
    # IMPORTANT: Do NOT run migrations here
+   # Migrations are completely bypassed for this deployment
+   # since the database tables already exist
    CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
    ```
 
@@ -100,18 +97,18 @@ The application uses three key files for deployment:
 
 This configuration solves the migration issues by:
 
-1. **Nixpacks Configuration**: The nixpacks.toml file explicitly defines the build and start commands, preventing Railway from automatically adding migration steps during the build phase
-2. **Pre-deploy Step**: Runs migrations from the correct directory with the correct Python path
-3. **Alembic Version Stamping**: Uses `alembic stamp head` to mark all migrations as already applied
-4. **Alembic Batch Mode**: Uses `render_as_batch=True` to make migrations more robust
+1. **Completely Bypassing Migrations**: Since the database tables already exist, we don't need to run migrations at all
+2. **Nixpacks Configuration**: The nixpacks.toml file explicitly defines the build and start commands, preventing Railway from automatically adding migration steps during the build phase
+3. **Commented Out Release Command**: The release command in the Procfile is commented out to prevent migrations from running
+4. **No Pre-deploy Steps**: All pre-deploy steps that would run migrations are removed
 5. **Start Command**: Uses your Procfile to start the service
 
 The key insights are:
 1. Railway was trying to run migrations during the build phase, which was causing errors
-2. The nixpacks.toml file gives us explicit control over the build process, preventing unwanted migration steps
-3. By using `alembic stamp head`, we tell Alembic that all migrations up to the latest have already been applied
-4. The `render_as_batch=True` option makes Alembic more tolerant of existing tables
-5. This combination of approaches provides multiple layers of protection against migration errors
+2. Since the database tables already exist, there's no need to run migrations at all
+3. By completely bypassing migrations, we avoid any potential conflicts with existing tables
+4. This approach is simpler and more reliable for an existing database
+5. For future schema changes, you can manually run migrations locally or through a separate process
 
 ### 5. Troubleshooting
 
