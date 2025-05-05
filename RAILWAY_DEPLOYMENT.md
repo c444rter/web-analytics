@@ -29,7 +29,7 @@ You need to set up three services in Railway:
        pip install -r requirements.txt
        ```
    - In the **Deploy** section:
-     - Set "Custom Start Command" to `web`
+     - Leave the "Custom Start Command" empty (it will use the command from nixpacks.toml)
      - Remove any "Pre-deploy step" (migrations are bypassed)
 
 3. **Worker Service**:
@@ -43,7 +43,8 @@ You need to set up three services in Railway:
        pip install -r requirements.txt
        ```
    - In the **Deploy** section:
-     - Set "Custom Start Command" to `worker`
+     - Leave the "Custom Start Command" empty
+     - Set "Nixpacks Config Path" to `nixpacks.worker.toml`
      - Remove any "Pre-deploy step" (migrations are bypassed)
 
 ### 2. Environment Variables
@@ -57,7 +58,7 @@ Make sure to set these environment variables in both the Web API and Worker serv
 
 ### 3. Deployment Configuration
 
-The application uses three key files for deployment:
+The application uses four key files for deployment:
 
 1. **Procfile**: Defines the commands to run for each service:
    ```
@@ -67,20 +68,31 @@ The application uses three key files for deployment:
    # release: cd /app && PYTHONPATH=. alembic stamp head && PYTHONPATH=. alembic upgrade head
    ```
 
-2. **nixpacks.toml**: Controls the build process for Railway's Nixpacks builder:
+2. **nixpacks.toml**: Controls the build process for the Web API service:
    ```toml
    [phases.build]
    cmds = [
      "pip install -r requirements.txt"
    ]
 
-   # Use the Procfile for starting the service
+   # Directly specify the start command
    [start]
-   cmd = ""
-   procfile = true
+   cmd = "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
    ```
 
-3. **Dockerfile**: Defines how to build the application:
+3. **nixpacks.worker.toml**: Controls the build process for the Worker service:
+   ```toml
+   [phases.build]
+   cmds = [
+     "pip install -r requirements.txt"
+   ]
+
+   # Directly specify the start command for the worker
+   [start]
+   cmd = "cd backend && rq worker --with-scheduler --url ${REDIS_PUBLIC_URL} --name worker-${RAILWAY_SERVICE_ID:-local} --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0"
+   ```
+
+4. **Dockerfile**: Defines how to build the application:
    ```dockerfile
    FROM python:3.11-slim
    WORKDIR /app/backend

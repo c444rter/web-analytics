@@ -3,7 +3,6 @@ cmds = [
   "pip install -r requirements.txt"
 ]
 
-# Use the Procfile for starting the service
+# Directly specify the start command
 [start]
-cmd = ""
-procfile = true
+cmd = "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
