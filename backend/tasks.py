@@ -49,9 +49,35 @@ def process_shopify_file_task(storage_path: str, user_id: int, upload_id: int):
             os.remove(temp_path)
             print(f"Temporary file removed: {temp_path}")
             
+        # Ensure the upload status is updated to completed
+        from db.database import SessionLocal
+        from db import models
+        db = SessionLocal()
+        try:
+            upload = db.query(models.Upload).filter(models.Upload.id == upload_id).first()
+            if upload:
+                upload.status = "completed"
+                db.commit()
+                print(f"Upload status updated to 'completed' for upload_id: {upload_id}")
+        finally:
+            db.close()
+            
     except Exception as e:
         print(f"Error processing file {storage_path} for user {user_id}, upload {upload_id}: {e}")
         traceback.print_exc()
+        
+        # Update status to failed in case of error
+        from db.database import SessionLocal
+        from db import models
+        db = SessionLocal()
+        try:
+            upload = db.query(models.Upload).filter(models.Upload.id == upload_id).first()
+            if upload:
+                upload.status = "failed"
+                db.commit()
+                print(f"Upload status updated to 'failed' for upload_id: {upload_id}")
+        finally:
+            db.close()
         
         # Clean up temporary file in case of error
         if os.path.exists(temp_path):

@@ -103,7 +103,7 @@ async def upload_file(
         except Exception as redis_error:
             print(f"Failed to enqueue background job: {str(redis_error)}")
             # If we can't enqueue the job, update the status
-            db_upload.status = "upload_complete"  # File is uploaded but processing not started
+            db_upload.status = "failed"  # Mark as failed if we can't enqueue the job
             db.commit()
 
         # Return both the DB upload_id and the Redis job ID (if available)
