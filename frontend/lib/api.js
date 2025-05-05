@@ -1,7 +1,6 @@
 // lib/api.js
 import axios from "axios";
 import { toast } from "react-toastify"; // optional: for notifications
-import { getSession } from "next-auth/react";
 
 const api = axios.create({
   // Use relative URLs to leverage Next.js rewrites

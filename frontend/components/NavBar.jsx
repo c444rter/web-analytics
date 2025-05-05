@@ -1,7 +1,7 @@
 // components/Navbar.jsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { 
   AppBar, 
   Toolbar, 
@@ -11,7 +11,6 @@ import {
   IconButton, 
   Menu, 
   MenuItem, 
-  Avatar,
   Tooltip,
   useTheme,
   useMediaQuery
@@ -29,7 +28,7 @@ import { useRouter, usePathname } from "next/navigation";
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null);
   const theme = useTheme();

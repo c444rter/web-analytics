@@ -29,7 +29,7 @@ module.exports = {
     'react/react-in-jsx-scope': 'off', // Next.js doesn't require React import
     'react/prop-types': 'off', // We're using TypeScript for prop validation
     'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
   },

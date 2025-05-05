@@ -11,7 +11,7 @@ function TokenSync() {
     // Only sync token when session is fully loaded and authenticated
     if (status === "authenticated" && session?.user?.accessToken) {
       localStorage.setItem("token", session.user.accessToken);
-      console.log("Token synced:", session.user.accessToken);
+      // Token synced successfully
     } else if (status === "unauthenticated") {
       // Clear token when explicitly unauthenticated
       localStorage.removeItem("token");
