@@ -10,6 +10,7 @@ import {
   Dialog, 
   DialogTitle, 
   DialogContent, 
+  DialogContentText,
   DialogActions, 
   Button,
   Paper,
@@ -21,6 +22,8 @@ import {
   Tooltip,
   Chip,
   Divider,
+  TextField,
+  Snackbar,
   useTheme,
   Alert
 } from "@mui/material";
@@ -36,6 +39,8 @@ import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import DeleteIcon from '@mui/icons-material/Delete';
+import useDeleteUpload from "../../hooks/useDeleteUpload";
 
 export default function HistoricalPage() {
   const router = useRouter();
@@ -48,9 +53,21 @@ export default function HistoricalPage() {
     refetch: refetchUploads
   } = useHistoricalUploads();
   
-  // State for the dialog
+  // Delete upload mutation
+  const { mutate: deleteUpload, isLoading: isDeleting } = useDeleteUpload();
+  
+  // State for the dialogs
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUpload, setSelectedUpload] = useState(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  
+  // State for snackbar
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'info'
+  });
 
   // If not authenticated, redirect outside render.
   useEffect(() => {
@@ -222,30 +239,47 @@ export default function HistoricalPage() {
                     
                     <Divider sx={{ my: 2 }} />
                     
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                      <Button 
-                        startIcon={<DashboardIcon />}
-                        size="small"
-                        sx={{ mr: 1 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/dashboard?upload_id=${upload.id}`);
-                        }}
-                        disabled={upload.status.toLowerCase() !== 'completed'}
-                      >
-                        Dashboard
-                      </Button>
-                      <Button 
-                        startIcon={<ShowChartIcon />}
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/projections?upload_id=${upload.id}`);
-                        }}
-                        disabled={upload.status.toLowerCase() !== 'completed'}
-                      >
-                        Forecasting
-                      </Button>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                      <Tooltip title="Delete upload">
+                        <IconButton 
+                          size="small" 
+                          color="error"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedUpload(upload);
+                            setDeleteDialogOpen(true);
+                            setDeleteConfirmText('');
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      
+                      <Box>
+                        <Button 
+                          startIcon={<DashboardIcon />}
+                          size="small"
+                          sx={{ mr: 1 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/dashboard?upload_id=${upload.id}`);
+                          }}
+                          disabled={upload.status.toLowerCase() !== 'completed'}
+                        >
+                          Dashboard
+                        </Button>
+                        <Button 
+                          startIcon={<ShowChartIcon />}
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/projections?upload_id=${upload.id}`);
+                          }}
+                          disabled={upload.status.toLowerCase() !== 'completed'}
+                        >
+                          Forecasting
+                        </Button>
+                      </Box>
                     </Box>
                   </CardContent>
                 </Card>
@@ -345,6 +379,93 @@ export default function HistoricalPage() {
           <Button onClick={handleDialogClose}>Cancel</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            maxWidth: 500
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: theme.palette.error.main }}>
+          Delete Upload
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText paragraph>
+            Are you sure you want to delete <strong>{selectedUpload?.file_name}</strong>?
+            This action cannot be undone and will remove all associated data.
+          </DialogContentText>
+          <DialogContentText paragraph sx={{ fontWeight: 'bold' }}>
+            Type "delete this upload" to confirm:
+          </DialogContentText>
+          <TextField
+            autoFocus
+            fullWidth
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            variant="outlined"
+            size="small"
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button 
+            onClick={() => setDeleteDialogOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={deleteConfirmText !== "delete this upload" || isDeleting}
+            onClick={() => {
+              if (selectedUpload) {
+                deleteUpload(selectedUpload.id, {
+                  onSuccess: () => {
+                    setDeleteDialogOpen(false);
+                    setSnackbar({
+                      open: true,
+                      message: `"${selectedUpload.file_name}" has been deleted successfully.`,
+                      severity: "success"
+                    });
+                    // Refetch uploads after deletion
+                    refetchUploads();
+                  },
+                  onError: (error) => {
+                    setSnackbar({
+                      open: true,
+                      message: error.message || "Error deleting upload.",
+                      severity: "error"
+                    });
+                  }
+                });
+              }
+            }}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert 
+          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

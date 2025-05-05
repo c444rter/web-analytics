@@ -223,3 +223,78 @@ async def get_upload_history(db: Session = Depends(get_db), current_user: models
     except Exception as e:
         print(f"Error occurred: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+@router.delete("/{upload_id}", response_model=dict, summary="Delete an upload")
+async def delete_upload(
+    upload_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Delete an upload and its associated data.
+    
+    This endpoint removes the upload record from the database and attempts to delete
+    the associated file from storage. It also removes any related data such as
+    orders and line items associated with this upload.
+    
+    Parameters:
+    - upload_id: The ID of the upload to delete
+    
+    Returns:
+    - A success message if the upload was deleted successfully
+    """
+    try:
+        # Get the upload
+        upload = db.query(models.Upload).filter(
+            models.Upload.id == upload_id,
+            models.Upload.user_id == current_user.id
+        ).first()
+        
+        if not upload:
+            raise HTTPException(status_code=404, detail="Upload not found or you don't have permission to delete it")
+        
+        # Try to delete the file from storage if it's in Supabase
+        if upload.file_path and upload.file_path.startswith("supabase://"):
+            try:
+                # Extract the storage path from the URL
+                bucket_name = os.environ.get('BUCKET_NAME', 'uploads')
+                storage_path = upload.file_path.replace(f"supabase://{bucket_name}/", "")
+                
+                # Import the delete function from supabase_client
+                from core.supabase_client import delete_file_from_storage
+                
+                # Delete the file
+                delete_result = delete_file_from_storage(storage_path, use_admin=True)
+                print(f"Storage delete result: {delete_result}")
+            except Exception as storage_error:
+                # Log the error but continue with database deletion
+                print(f"Error deleting file from storage: {str(storage_error)}")
+                # We don't want to fail the whole operation if just the storage delete fails
+        
+        # Delete related data (orders, line items, etc.)
+        try:
+            # Delete orders associated with this upload
+            # This should cascade to line items if foreign key constraints are set up properly
+            db.query(models.Order).filter(models.Order.upload_id == upload_id).delete()
+            db.flush()  # Flush changes to ensure orders are deleted before the upload
+        except Exception as related_error:
+            print(f"Error deleting related data: {str(related_error)}")
+            # Continue with upload deletion even if related data deletion fails
+        
+        # Delete the upload record
+        db.delete(upload)
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": f"Upload '{upload.file_name}' and associated data deleted successfully"
+        }
+    except HTTPException as http_error:
+        # Re-raise HTTP exceptions
+        raise http_error
+    except Exception as e:
+        db.rollback()  # Rollback transaction on error
+        print(f"Error deleting upload: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error deleting upload: {str(e)}")

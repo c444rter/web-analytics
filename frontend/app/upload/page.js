@@ -422,7 +422,7 @@ export default function UploadPage() {
 
       {/* Status Snackbar */}
       <Snackbar
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
         open={snackbar.open}
         autoHideDuration={null}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
