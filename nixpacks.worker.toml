@@ -4,6 +4,6 @@ buildCommand = "pip install -r requirements.txt"
 nixPkgs = ["python3", "postgresql_16.dev", "gcc"]
 
 [deploy]
-startCommand = "cd backend && rq worker --with-scheduler --url ${REDIS_URL:-redis://${REDISUSER:-default}:${REDISPASSWORD}@${REDISHOST:-localhost}:${REDISPORT:-6379}} --name worker-${RAILWAY_SERVICE_ID:-local} --verbose --worker-ttl 3600 --results-ttl 3600 --max-jobs 0 default"
+startCommand = "cd backend && rq worker --with-scheduler --url ${REDIS_URL:-redis://${REDISUSER:-default}:${REDISPASSWORD}@${REDISHOST:-localhost}:${REDISPORT:-6379}} --name worker-${RAILWAY_SERVICE_ID:-local} --verbose --worker-ttl 3600 --results-ttl 3600 --burst false default"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
