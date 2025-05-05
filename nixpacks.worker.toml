@@ -1,8 +1,9 @@
-[phases.build]
-cmds = [
-  "pip install -r requirements.txt"
-]
+[build]
+builder = "nixpacks"
+buildCommand = "pip install -r requirements.txt"
+nixPkgs = ["python3", "postgresql_16.dev", "gcc"]
 
-# Directly specify the start command for the worker
-[start]
-cmd = "cd backend && rq worker --with-scheduler --url ${REDIS_URL} --name worker-${RAILWAY_SERVICE_ID:-local} --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0"
+[deploy]
+startCommand = "cd backend && rq worker --with-scheduler --url ${REDIS_URL} --name worker-${RAILWAY_SERVICE_ID:-local} --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
