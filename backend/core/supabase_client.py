@@ -205,6 +205,40 @@ def get_file_url(file_path, expires_in=3600, use_admin=False):
         # Fallback to public URL if signed URL fails
         return f"{SUPABASE_URL}/storage/v1/object/public/{BUCKET_NAME}/{file_path}"
 
+def delete_file_from_storage(file_path, use_admin=False):
+    """Delete a file from Supabase Storage using REST API
+    
+    Args:
+        file_path: The path of the file in storage to delete
+        use_admin: Whether to use admin permissions (service role key)
+        
+    Returns:
+        bool: True if deletion was successful, False otherwise
+    """
+    try:
+        # Construct the delete URL
+        delete_url = f"{SUPABASE_URL}/storage/v1/object/{BUCKET_NAME}/{file_path}"
+        
+        # Choose headers based on permission level needed
+        request_headers = admin_headers if use_admin else headers
+        
+        # Delete the file
+        response = requests.delete(
+            delete_url,
+            headers=request_headers
+        )
+        
+        # Check if the deletion was successful
+        if response.status_code in (200, 204):
+            print(f"Successfully deleted file at {file_path}")
+            return True
+        else:
+            print(f"Failed to delete file with status {response.status_code}: {response.text}")
+            return False
+    except Exception as e:
+        print(f"Supabase delete error: {str(e)}")
+        return False
+
 def admin_create_bucket(bucket_name, public=False, file_size_limit=52428800):
     """Create a new storage bucket (requires service role key)
     
