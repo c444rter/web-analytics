@@ -56,36 +56,14 @@ def run_migrations_offline() -> None:
 
     """
     url = config.get_main_option("sqlalchemy.url")
-    
-    # Connect to the database to check existing tables
-    engine = create_engine(url)
-    with engine.connect() as connection:
-        from sqlalchemy import inspect
-        inspector = inspect(connection)
-        tables = inspector.get_table_names()
-        
-        # Create a custom implementation of DefaultImpl to override create_table
-        from alembic.operations.impl import DefaultImpl
-        
-        class CustomOfflineImpl(DefaultImpl):
-            def create_table(self, table):
-                if table.name in tables:
-                    # Skip creating tables that already exist
-                    print(f"Skipping creation of table {table.name} as it already exists")
-                    return
-                super().create_table(table)
-        
-        # Configure Alembic context with our custom implementation
-        from sqlalchemy.engine.default import DefaultDialect
-        context.configure(
-            url=url,
-            target_metadata=target_metadata,
-            literal_binds=True,
-            dialect_opts={"paramstyle": "named"},
-            render_as_batch=True,
-            compare_type=True,
-            impl=CustomOfflineImpl(DefaultDialect(), connection, context.opts)
-        )
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+        render_as_batch=True,
+        compare_type=True
+    )
 
     with context.begin_transaction():
         context.run_migrations()
@@ -114,25 +92,12 @@ def run_migrations_online() -> None:
         inspector = inspect(connection)
         tables = inspector.get_table_names()
         
-        # Create a custom implementation of DefaultImpl to override create_table
-        from alembic.operations import ops
-        from alembic.operations.impl import DefaultImpl
-        
-        class CustomImpl(DefaultImpl):
-            def create_table(self, table):
-                if table.name in tables:
-                    # Skip creating tables that already exist
-                    print(f"Skipping creation of table {table.name} as it already exists")
-                    return
-                super().create_table(table)
-        
-        # Configure Alembic context with our custom implementation
+        # Configure Alembic context
         context.configure(
             connection=connection, 
             target_metadata=target_metadata,
             render_as_batch=True,
-            compare_type=True,
-            impl=CustomImpl(connection.dialect, connection, context.opts)
+            compare_type=True
         )
 
         with context.begin_transaction():

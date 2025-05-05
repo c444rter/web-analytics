@@ -103,14 +103,14 @@ This configuration solves the migration issues by:
 1. **Nixpacks Configuration**: The nixpacks.toml file explicitly defines the build and start commands, preventing Railway from automatically adding migration steps during the build phase
 2. **Pre-deploy Step**: Runs migrations from the correct directory with the correct Python path
 3. **Alembic Version Stamping**: Uses `alembic stamp head` to mark all migrations as already applied
-4. **Custom Alembic Implementation**: Overrides Alembic's table creation logic to skip tables that already exist
+4. **Alembic Batch Mode**: Uses `render_as_batch=True` to make migrations more robust
 5. **Start Command**: Uses your Procfile to start the service
 
 The key insights are:
 1. Railway was trying to run migrations during the build phase, which was causing errors
 2. The nixpacks.toml file gives us explicit control over the build process, preventing unwanted migration steps
 3. By using `alembic stamp head`, we tell Alembic that all migrations up to the latest have already been applied
-4. Our custom Alembic implementation ensures that even if migrations are run, they won't try to create tables that already exist
+4. The `render_as_batch=True` option makes Alembic more tolerant of existing tables
 5. This combination of approaches provides multiple layers of protection against migration errors
 
 ### 5. Troubleshooting
