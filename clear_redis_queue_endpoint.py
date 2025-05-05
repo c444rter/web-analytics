@@ -9,15 +9,14 @@ import redis
 from rq import Queue
 import os
 from typing import Dict
+from core.deps import get_current_user
+from db import models
 
 # Create a router
 router = APIRouter()
 
 # Security scheme
 security = HTTPBearer()
-
-# Admin token for authentication
-ADMIN_TOKEN = os.getenv("SECRET_KEY", "default-secret-key")
 
 def get_redis_connection():
     """Get Redis connection using environment variables"""
@@ -35,17 +34,16 @@ def get_redis_connection():
     )
 
 @router.post("/api/admin/clear-queue", status_code=status.HTTP_200_OK)
-async def clear_queue(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, str]:
+async def clear_queue(current_user: models.User = Depends(get_current_user)) -> Dict:
     """
     Clear all jobs from the Redis queue.
-    Requires admin token for authentication.
+    Requires admin authentication.
     """
-    # Verify token
-    if credentials.credentials != ADMIN_TOKEN:
+    # Check if the user is an admin (assuming user with ID 1 is admin)
+    if current_user.id != 1:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to perform this action"
         )
     
     try:

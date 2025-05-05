@@ -1,16 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import redis
 from rq import Queue
 import os
 from typing import Dict
-from core.deps import get_current_admin_user
+from core.deps import get_current_user
+from db import models
 
 # Create a router
 router = APIRouter()
-
-# Security scheme
-security = HTTPBearer()
 
 def get_redis_connection():
     """Get Redis connection using environment variables"""
@@ -28,11 +25,17 @@ def get_redis_connection():
     )
 
 @router.post("/clear", status_code=status.HTTP_200_OK)
-async def clear_queue(admin_user: Dict = Depends(get_current_admin_user)) -> Dict:
+async def clear_queue(current_user: models.User = Depends(get_current_user)) -> Dict:
     """
     Clear all jobs from the Redis queue.
     Requires admin authentication.
     """
+    # Check if the user is an admin (assuming user with ID 1 is admin)
+    if current_user.id != 1:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to perform this action"
+        )
     try:
         # Connect to Redis
         redis_conn = get_redis_connection()

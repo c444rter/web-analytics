@@ -17,6 +17,9 @@ redis_port = int(os.getenv("REDISPORT", 6379))
 redis_password = os.getenv("REDISPASSWORD")
 redis_user = os.getenv("REDISUSER", "default")
 
+# Print connection details for debugging
+print(f"Connecting to Redis at {redis_host}:{redis_port}")
+
 # Connect to Redis
 redis_conn = redis.Redis(
     host=redis_host,
