@@ -1,7 +1,7 @@
 # main.py
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from api.v1 import users, uploads, dashboard, analytics, projections, test_data
+from api.v1 import users, uploads, dashboard, analytics, projections, test_data, queue_management
 from dotenv import load_dotenv
 import os
 import time
@@ -93,3 +93,4 @@ app.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 app.include_router(projections.router, prefix="/projections", tags=["projections"])
 app.include_router(test_data.router, prefix="/test-data", tags=["test_data"])
+app.include_router(queue_management.router, prefix="/queue", tags=["queue"])
