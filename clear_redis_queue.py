@@ -11,23 +11,30 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Get Redis connection parameters
-redis_host = os.getenv("REDISHOST", "localhost")
-redis_port = int(os.getenv("REDISPORT", 6379))
-redis_password = os.getenv("REDISPASSWORD")
-redis_user = os.getenv("REDISUSER", "default")
+# Check for REDIS_URL first (for Railway deployment)
+redis_url = os.getenv("REDIS_URL")
 
-# Print connection details for debugging
-print(f"Connecting to Redis at {redis_host}:{redis_port}")
-
-# Connect to Redis
-redis_conn = redis.Redis(
-    host=redis_host,
-    port=redis_port,
-    username=redis_user,
-    password=redis_password,
-    ssl=False
-)
+# If REDIS_URL is available, use it directly
+if redis_url:
+    print(f"Using Redis URL: {redis_url}")
+    redis_conn = redis.from_url(redis_url)
+else:
+    # Fall back to individual parameters for local development
+    redis_host = os.getenv("REDISHOST", "localhost")
+    redis_port = int(os.getenv("REDISPORT", 6379))
+    redis_password = os.getenv("REDISPASSWORD")
+    redis_user = os.getenv("REDISUSER", "default")
+    
+    print(f"Using individual Redis parameters - Host: {redis_host}, Port: {redis_port}")
+    
+    # Connect to Redis
+    redis_conn = redis.Redis(
+        host=redis_host,
+        port=redis_port,
+        username=redis_user,
+        password=redis_password,
+        ssl=False
+    )
 
 # Get the default queue
 queue = Queue(connection=redis_conn)

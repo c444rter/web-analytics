@@ -20,18 +20,29 @@ security = HTTPBearer()
 
 def get_redis_connection():
     """Get Redis connection using environment variables"""
-    redis_host = os.getenv("REDISHOST", "localhost")
-    redis_port = int(os.getenv("REDISPORT", 6379))
-    redis_password = os.getenv("REDISPASSWORD")
-    redis_user = os.getenv("REDISUSER", "default")
+    # Check for REDIS_URL first (for Railway deployment)
+    redis_url = os.getenv("REDIS_URL")
     
-    return redis.Redis(
-        host=redis_host,
-        port=redis_port,
-        username=redis_user,
-        password=redis_password,
-        ssl=False
-    )
+    # If REDIS_URL is available, use it directly
+    if redis_url:
+        print(f"Endpoint using Redis URL: {redis_url}")
+        return redis.from_url(redis_url)
+    else:
+        # Fall back to individual parameters for local development
+        redis_host = os.getenv("REDISHOST", "localhost")
+        redis_port = int(os.getenv("REDISPORT", 6379))
+        redis_password = os.getenv("REDISPASSWORD")
+        redis_user = os.getenv("REDISUSER", "default")
+        
+        print(f"Endpoint using individual Redis parameters - Host: {redis_host}, Port: {redis_port}")
+        
+        return redis.Redis(
+            host=redis_host,
+            port=redis_port,
+            username=redis_user,
+            password=redis_password,
+            ssl=False
+        )
 
 @router.post("/api/admin/clear-queue", status_code=status.HTTP_200_OK)
 async def clear_queue(current_user: models.User = Depends(get_current_user)) -> Dict:

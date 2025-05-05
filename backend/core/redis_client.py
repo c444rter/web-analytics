@@ -9,27 +9,35 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Use individual parameters directly
-redis_host = os.getenv("REDISHOST", "localhost")
-redis_port = int(os.getenv("REDISPORT", 6379))
-redis_password = os.getenv("REDISPASSWORD")
-redis_user = os.getenv("REDISUSER", "default")
-redis_db = int(os.getenv("REDIS_DB", 0))
+# Check for REDIS_URL first (for Railway deployment)
+redis_url = os.getenv("REDIS_URL")
 
-print(f"Redis Host: {redis_host}, Port: {redis_port}")
-
-# Connect using individual parameters
-if redis_password:
-    redis_client = redis.Redis(
-        host=redis_host, 
-        port=redis_port, 
-        username=redis_user,
-        password=redis_password,
-        db=redis_db,
-        ssl=False  # Set to True if using SSL
-    )
+# If REDIS_URL is available, use it directly
+if redis_url:
+    print(f"Using Redis URL: {redis_url}")
+    redis_client = redis.from_url(redis_url)
 else:
-    redis_client = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
+    # Fall back to individual parameters for local development
+    redis_host = os.getenv("REDISHOST", "localhost")
+    redis_port = int(os.getenv("REDISPORT", 6379))
+    redis_password = os.getenv("REDISPASSWORD")
+    redis_user = os.getenv("REDISUSER", "default")
+    redis_db = int(os.getenv("REDIS_DB", 0))
+
+    print(f"Using individual Redis parameters - Host: {redis_host}, Port: {redis_port}")
+
+    # Connect using individual parameters
+    if redis_password:
+        redis_client = redis.Redis(
+            host=redis_host, 
+            port=redis_port, 
+            username=redis_user,
+            password=redis_password,
+            db=redis_db,
+            ssl=False  # Set to True if using SSL
+        )
+    else:
+        redis_client = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
 
 # Default cache expiration time (in seconds)
 DEFAULT_CACHE_EXPIRY = 60 * 60 * 6  # 1 hour
