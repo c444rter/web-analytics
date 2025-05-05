@@ -51,6 +51,8 @@ export default function UploadPage() {
     severity: "info"
   });
   const [kpiDialogOpen, setKpiDialogOpen] = useState(false);
+  // Store the most recent upload ID from the API response
+  const [latestUploadIdFromApi, setLatestUploadIdFromApi] = useState(null);
 
   const { mutateAsync, isLoading } = useUpload();
 
@@ -73,6 +75,8 @@ export default function UploadPage() {
         const newPercent = data.percent || 0;
         const statusMessage = data.message || `Status: ${newStatus}`;
         
+        console.log(`Status update: ${newStatus}, Progress: ${newPercent}%, Message: ${statusMessage}`);
+        
         setJobStatus(newStatus);
         setProgress(newPercent);
 
@@ -87,10 +91,37 @@ export default function UploadPage() {
         if (newStatus === "completed") {
           console.log("Processing completed successfully");
           clearInterval(intervalId);
-          if (data.upload_id) setUploadId(data.upload_id);
-          setTimeout(() => {
-            setKpiDialogOpen(true);
-          }, 500);
+          if (data.upload_id) {
+            setUploadId(data.upload_id);
+            setLatestUploadIdFromApi(data.upload_id);
+            console.log(`Setting latest upload ID from API: ${data.upload_id}`);
+          }
+          
+          // Show the dialog to choose dashboard view
+          setKpiDialogOpen(true);
+          
+          // Auto-redirect to default dashboard after 10 seconds if user doesn't choose
+          const redirectTimer = setTimeout(() => {
+            console.log("Auto-redirecting to default dashboard");
+            setKpiDialogOpen(false);
+            // Use the most recent upload ID (either from state or API response)
+            const finalUploadId = latestUploadIdFromApi || data.upload_id || uploadId;
+            console.log(`Auto-redirecting with upload ID: ${finalUploadId}`);
+            if (finalUploadId) {
+              // Store the selection in Redux before navigating
+              dispatch(setDashboardSelection({
+                uploadId: finalUploadId,
+                mode: 'default',
+                fileName: selectedFile?.name
+              }));
+              router.push(`/dashboard?upload_id=${finalUploadId}&mode=default`);
+            } else {
+              router.push("/dashboard");
+            }
+          }, 10000);
+          
+          // Store the timer ID so we can clear it if the user makes a selection
+          window.redirectTimer = redirectTimer;
         } else if (newStatus === "failed") {
           console.log("Processing failed");
           clearInterval(intervalId);
@@ -147,6 +178,7 @@ export default function UploadPage() {
       // Ensure we get a valid DB upload_id from the response
       if (data.upload_id) {
         setUploadId(data.upload_id);
+        setLatestUploadIdFromApi(data.upload_id);
         console.log(`Starting polling for upload_id: ${data.upload_id}`);
         // Start polling using the DB upload id (not the Redis job id)
         pollJobStatus(data.upload_id);
@@ -180,30 +212,46 @@ export default function UploadPage() {
   };
 
   const handleChooseDefault = () => {
+    // Clear the auto-redirect timer if it exists
+    if (window.redirectTimer) {
+      clearTimeout(window.redirectTimer);
+      window.redirectTimer = null;
+    }
+    
     setKpiDialogOpen(false);
-    if (uploadId) {
+    // Use the most recent upload ID (either from state or API response)
+    const finalUploadId = latestUploadIdFromApi || uploadId;
+    if (finalUploadId) {
       // Store the selection in Redux before navigating
       dispatch(setDashboardSelection({
-        uploadId: uploadId,
+        uploadId: finalUploadId,
         mode: 'default',
         fileName: selectedFile?.name
       }));
-      router.push(`/dashboard?upload_id=${uploadId}&mode=default`);
+      router.push(`/dashboard?upload_id=${finalUploadId}&mode=default`);
     } else {
       router.push("/dashboard");
     }
   };
 
   const handleChooseCustom = () => {
+    // Clear the auto-redirect timer if it exists
+    if (window.redirectTimer) {
+      clearTimeout(window.redirectTimer);
+      window.redirectTimer = null;
+    }
+    
     setKpiDialogOpen(false);
-    if (uploadId) {
+    // Use the most recent upload ID (either from state or API response)
+    const finalUploadId = latestUploadIdFromApi || uploadId;
+    if (finalUploadId) {
       // Store the selection in Redux before navigating
       dispatch(setDashboardSelection({
-        uploadId: uploadId,
+        uploadId: finalUploadId,
         mode: 'custom',
         fileName: selectedFile?.name
       }));
-      router.push(`/dashboard?upload_id=${uploadId}&mode=custom`);
+      router.push(`/dashboard?upload_id=${finalUploadId}&mode=custom`);
     } else {
       router.push("/dashboard");
     }
@@ -401,7 +449,7 @@ export default function UploadPage() {
         >
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 'medium' }}>{snackbar.message}</Typography>
-            {jobStatus === "processing" && (
+            {jobStatus && jobStatus !== "completed" && jobStatus !== "failed" && (
               <Box sx={{ mt: 1 }}>
                 <LinearProgress 
                   variant="determinate" 
