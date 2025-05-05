@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 import time
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from core.deps import get_db
 from core.redis_client import redis_client
 
@@ -62,7 +63,7 @@ def health_check(db: Session = Depends(get_db)):
     # Check database connection
     try:
         # Execute a simple query to check the database connection
-        db.execute("SELECT 1").fetchone()
+        db.execute(text("SELECT 1")).fetchone()
         health_status["services"]["database"] = "connected"
     except Exception as e:
         health_status["status"] = "unhealthy"

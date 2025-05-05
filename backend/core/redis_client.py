@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Try to use REDIS_PUBLIC_URL first, fall back to individual parameters
-redis_url = os.getenv("REDIS_PUBLIC_URL")
+# Try to use REDIS_URL first, fall back to individual parameters
+redis_url = os.getenv("REDIS_URL")
 print(f"Redis URL: {redis_url}")
 if redis_url:
     # Parse the Redis URL to get connection details

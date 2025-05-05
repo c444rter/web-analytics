@@ -5,4 +5,4 @@ cmds = [
 
 # Directly specify the start command for the worker
 [start]
-cmd = "cd backend && rq worker --with-scheduler --url ${REDIS_PUBLIC_URL} --name worker-${RAILWAY_SERVICE_ID:-local} --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0"
+cmd = "cd backend && rq worker --with-scheduler --url ${REDIS_URL} --name worker-${RAILWAY_SERVICE_ID:-local} --verbose --worker-ttl 3600 --job-timeout 3600 --burst-delay 1 --max-jobs 0"
